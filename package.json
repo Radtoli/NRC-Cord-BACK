@@ -1,0 +1,57 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "build": "tsc --build",
+    "start": "node dist/index.js",
+    "typeorm": "ts-node-dev ./node_modules/typeorm/cli.js -d src/shared/infra/databases/trfsDataSource.ts",
+    "migration:create": "ts-node ./node_modules/typeorm/cli.js migration:create",
+    "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run -d src/shared/infra/databases/trfsDataSource.ts",
+    "migration:revert": "ts-node ./node_modules/typeorm/cli.js migration:revert -d src/shared/infra/databases/trfsDataSource.ts",
+    "migration:show": "ts-node ./node_modules/typeorm/cli.js migration:show -d src/shared/infra/databases/trfsDataSource.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "description": "",
+  "devDependencies": {
+    "@rocketseat/eslint-config": "^2.1.0",
+    "@types/node": "^22.10.10",
+    "eslint": "^8.46.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@fastify/swagger": "^9.4.2",
+    "@fastify/swagger-ui": "^5.2.2",
+    "@qdrant/js-client-rest": "^1.15.1",
+    "@sinclair/typebox": "^0.34.33",
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.96",
+    "@types/node-cron": "^3.0.11",
+    "awilix": "^12.0.5",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.2",
+    "googleapis": "^159.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.19.0",
+    "mongoose": "^8.18.1",
+    "node-cron": "^4.2.1",
+    "pg": "^8.14.1",
+    "pino-pretty": "^13.1.1",
+    "typeorm": "^0.3.22"
+  }
+}
