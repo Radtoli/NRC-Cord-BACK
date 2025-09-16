@@ -8,11 +8,11 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ && \
     ln -sf python3 /usr/bin/python
 
-# Copiar package.json e package-lock.json
-COPY package*.json ./
+# Copiar apenas package.json (package-lock.json está no .gitignore)
+COPY package.json ./
 
-# Instalar todas as dependências (incluindo devDependencies para build)
-RUN npm ci
+# Instalar todas as dependências (npm install gerará o package-lock.json)
+RUN npm install
 
 # Copiar o código fonte
 COPY . .
@@ -30,11 +30,11 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ && \
     ln -sf python3 /usr/bin/python
 
-# Copiar package.json e package-lock.json
-COPY package*.json ./
+# Copiar apenas package.json (package-lock.json está no .gitignore)
+COPY package.json ./
 
 # Instalar apenas dependências de produção
-RUN npm ci --only=production && \
+RUN npm install --only=production && \
     npm cache clean --force
 
 # Copiar arquivos necessários do stage de build
