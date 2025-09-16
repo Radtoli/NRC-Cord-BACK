@@ -1,4 +1,5 @@
 import { DataSource, MongoRepository } from "typeorm";
+import { ObjectId } from "mongodb";
 import { IDocumentRepository } from "../model/IDocumentRepositorie";
 import { Document } from "../../infra/databases/Entititities";
 
@@ -10,8 +11,14 @@ export class DocumentRepository implements IDocumentRepository {
   }
 
   public async findById(id: string): Promise<any | null> {
-    const document = await this.ormRepository.findOne({ where: { id } });
-    return document || null;
+    try {
+      const objectId = new ObjectId(id);
+      const document = await this.ormRepository.findOne({ where: { _id: objectId } });
+      return document || null;
+    } catch (error) {
+      console.error('Error finding document by ID:', error);
+      return null;
+    }
   }
 
   public async findAll(): Promise<any[]> {
@@ -28,13 +35,25 @@ export class DocumentRepository implements IDocumentRepository {
 
 
   public async update(id: string, data: Partial<Document>): Promise<any> {
-    await this.ormRepository.update(id, data);
-    const updatedDocument = await this.findById(id);
-    return updatedDocument;
+    try {
+      const objectId = new ObjectId(id);
+      await this.ormRepository.update(objectId, data);
+      const updatedDocument = await this.findById(id);
+      return updatedDocument;
+    } catch (error) {
+      console.error('Error updating document:', error);
+      throw error;
+    }
   }
 
 
   public async delete(id: string): Promise<void> {
-    await this.ormRepository.delete(id);
+    try {
+      const objectId = new ObjectId(id);
+      await this.ormRepository.delete(objectId);
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      throw error;
+    }
   }
 }

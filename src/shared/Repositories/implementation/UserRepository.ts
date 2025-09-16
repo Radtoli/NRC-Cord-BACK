@@ -1,4 +1,5 @@
 import { DataSource, MongoRepository } from "typeorm";
+import { ObjectId } from "mongodb";
 import { IUserRepository } from "../model/IUserRepository";
 import { User } from "../../infra/databases/Entititities";
 
@@ -10,8 +11,14 @@ export class UserRepository implements IUserRepository {
   }
 
   public async findById(id: string): Promise<any | null> {
-    const user = await this.ormRepository.findOne({ where: { id } });
-    return user || null;
+    try {
+      const objectId = new ObjectId(id);
+      const user = await this.ormRepository.findOne({ where: { _id: objectId } });
+      return user || null;
+    } catch (error) {
+      console.error('Error finding user by ID:', error);
+      return null;
+    }
   }
 
   public async findByEmail(email: string): Promise<User | null> {
@@ -36,12 +43,30 @@ export class UserRepository implements IUserRepository {
   }
 
   public async update(id: string, data: Partial<User>): Promise<any> {
-    await this.ormRepository.update(id, data);
-    const updatedUser = await this.findById(id);
-    return updatedUser;
+    try {
+      console.log('UserRepository.update called with:', { id, data });
+      const objectId = new ObjectId(id);
+
+      const result = await this.ormRepository.update(objectId, data);
+      console.log('Update result:', result);
+
+      const updatedUser = await this.findById(id);
+      console.log('Updated user retrieved:', updatedUser);
+
+      return updatedUser;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
   }
 
   public async delete(id: string): Promise<void> {
-    await this.ormRepository.delete(id);
+    try {
+      const objectId = new ObjectId(id);
+      await this.ormRepository.delete(objectId);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
   }
 }

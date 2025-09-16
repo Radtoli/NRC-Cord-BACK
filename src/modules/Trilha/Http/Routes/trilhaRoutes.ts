@@ -13,153 +13,75 @@ import {
 } from "../Schemas/TrilhaSchemas";
 import { authorizationHeadersSchema } from "../../../User/Http/Schemas/Header/authorizationHeadersSchema";
 import { checkAuthMiddleware, requireRoles } from "../../../User/Http/Middlewares/checkAuthMiddleware";
+import {
+  trilhaResponseSchema,
+  trilhaListResponseSchema,
+  trilhaDeleteResponseSchema
+} from "../Schemas/response/trilhaResponseSchema";
 
 export async function trilhaRoutes(fastify: FastifyInstance) {
-  // Aplicar middleware de autenticação e autorização para todas as rotas
-  fastify.addHook('preHandler', checkAuthMiddleware);
-  fastify.addHook('preHandler', requireRoles(['manager'])); // Apenas admin/manager
-
-  // Criar trilha
-  fastify.post('/', {
+  // Criar trilha (apenas managers)
+  fastify.post<{
+    Body: any;
+    Headers: any;
+  }>('/', {
     schema: {
       body: createTrilhaBodySchema,
       headers: authorizationHeadersSchema,
-      response: {
-        201: {
-          type: 'object',
-          properties: {
-            success: { type: 'boolean' },
-            data: {
-              type: 'object',
-              properties: {
-                _id: { type: 'string' },
-                title: { type: 'string' },
-                description: { type: 'string' },
-                videos: {
-                  type: 'array',
-                  items: { type: 'string' }
-                },
-                createdAt: { type: 'string', format: 'date-time' },
-                updatedAt: { type: 'string', format: 'date-time' }
-              }
-            },
-            message: { type: 'string' }
-          }
-        }
-      }
-    }
+      response: trilhaResponseSchema
+    },
+    preHandler: [checkAuthMiddleware, requireRoles(['manager'])]
   }, createTrilhaHandler);
 
-  // Listar trilhas
-  fastify.get('/', {
+  // Listar trilhas (todos os usuários autenticados)
+  fastify.get<{
+    Headers: any;
+  }>('/', {
     schema: {
       headers: authorizationHeadersSchema,
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            success: { type: 'boolean' },
-            data: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  _id: { type: 'string' },
-                  title: { type: 'string' },
-                  description: { type: 'string' },
-                  videos: {
-                    type: 'array',
-                    items: { type: 'string' }
-                  },
-                  createdAt: { type: 'string', format: 'date-time' },
-                  updatedAt: { type: 'string', format: 'date-time' }
-                }
-              }
-            },
-            message: { type: 'string' }
-          }
-        }
-      }
-    }
+      response: trilhaListResponseSchema
+    },
+    preHandler: [checkAuthMiddleware]
   }, listTrilhasHandler);
 
-  // Buscar trilha por ID
-  fastify.get('/:id', {
+  // Buscar trilha por ID (todos os usuários autenticados)
+  fastify.get<{
+    Params: any;
+    Headers: any;
+  }>('/:id', {
     schema: {
       params: trilhaIdParamSchema,
       headers: authorizationHeadersSchema,
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            success: { type: 'boolean' },
-            data: {
-              type: 'object',
-              properties: {
-                _id: { type: 'string' },
-                title: { type: 'string' },
-                description: { type: 'string' },
-                videos: {
-                  type: 'array',
-                  items: { type: 'string' }
-                },
-                createdAt: { type: 'string', format: 'date-time' },
-                updatedAt: { type: 'string', format: 'date-time' }
-              }
-            },
-            message: { type: 'string' }
-          }
-        }
-      }
-    }
+      response: trilhaResponseSchema
+    },
+    preHandler: [checkAuthMiddleware]
   }, getTrilhaByIdHandler);
 
-  // Atualizar trilha
-  fastify.put('/:id', {
+  // Atualizar trilha (apenas managers)
+  fastify.put<{
+    Params: any;
+    Body: any;
+    Headers: any;
+  }>('/:id', {
     schema: {
       params: trilhaIdParamSchema,
       body: updateTrilhaBodySchema,
       headers: authorizationHeadersSchema,
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            success: { type: 'boolean' },
-            data: {
-              type: 'object',
-              properties: {
-                _id: { type: 'string' },
-                title: { type: 'string' },
-                description: { type: 'string' },
-                videos: {
-                  type: 'array',
-                  items: { type: 'string' }
-                },
-                createdAt: { type: 'string', format: 'date-time' },
-                updatedAt: { type: 'string', format: 'date-time' }
-              }
-            },
-            message: { type: 'string' }
-          }
-        }
-      }
-    }
+      response: trilhaResponseSchema
+    },
+    preHandler: [checkAuthMiddleware, requireRoles(['manager'])]
   }, updateTrilhaHandler);
 
-  // Deletar trilha
-  fastify.delete('/:id', {
+  // Deletar trilha (apenas managers)
+  fastify.delete<{
+    Headers: any;
+    Params: any;
+  }>('/:id', {
     schema: {
       params: trilhaIdParamSchema,
       headers: authorizationHeadersSchema,
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            success: { type: 'boolean' },
-            message: { type: 'string' }
-          }
-        }
-      }
-    }
+      response: trilhaDeleteResponseSchema
+    },
+    preHandler: [checkAuthMiddleware, requireRoles(['manager'])]
   }, deleteTrilhaHandler);
 }

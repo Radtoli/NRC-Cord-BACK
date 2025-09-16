@@ -28,7 +28,17 @@ const app = fastify({
 });
 
 // Configure CORS
-app.register(fastifyCors);
+app.register(fastifyCors, {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:3003',
+    'https://nrc-coord-front.vercel.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+});
 
 if (process.env.NODE_ENV === 'development') {
   app.register(fastifySwagger, {

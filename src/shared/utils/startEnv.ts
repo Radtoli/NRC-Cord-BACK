@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { container } from '../infra/containers';
 import { AdminInitializerService } from '../services/AdminInitializerService';
 import { UserRepository } from '../Repositories/implementation/UserRepository';
+import { CreateUserService } from '../../modules/User/Services/CreateUserService';
 
 export async function startEnvironment() {
   const mongoDataSource = container.resolve<DataSource>('mongoDataSource');
@@ -21,8 +22,9 @@ export async function startEnvironment() {
     // Inicializar usuário admin
     console.log('🔄 Verificando usuário administrador...');
     const userRepository = container.resolve<UserRepository>('userRepository');
+    const createUserService = container.resolve<CreateUserService>('createUserService');
 
-    const adminInitializer = new AdminInitializerService(userRepository);
+    const adminInitializer = new AdminInitializerService(userRepository, createUserService);
     await adminInitializer.initializeAdminUser();
 
     console.log('🚀 Ambiente inicializado com sucesso!');

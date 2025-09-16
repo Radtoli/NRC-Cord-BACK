@@ -46,10 +46,10 @@ export class LoginUserService {
     return {
       user: {
         _id: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        roles: user.roles,
-        permissions: user.permissions
+        name: String(user.name || ''),
+        email: String(user.email || ''),
+        roles: Array.isArray(user.roles) ? user.roles : [],
+        permissions: Array.isArray(user.permissions) ? user.permissions : []
       },
       token,
       expiresIn: process.env.JWT_EXPIRES_IN || '7d'

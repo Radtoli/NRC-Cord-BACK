@@ -8,18 +8,21 @@ import { createDocumentHandler } from "../Handlers/createDocumentHandler";
 import { updateDocumentHandler } from "../Handlers/updateDocumentHandler";
 import { deleteDocumentHandler } from "../Handlers/deleteDocumentHandler";
 import { listDocumentsHandler, getDocumentByIdHandler } from "../Handlers/listDocumentsHandler";
+import { documentListResponseSchema, documentResponseSchema, documentDeleteResponseSchema } from "../Schemas/response/documentResponseSchema";
+
 
 export async function documentRouter(app: FastifyInstance) {
 
   // Listar todos os documentos (apenas managers)
   app.get<{
     Headers: AuthorizationHeadersType;
-  }>('/documents', {
+  }>('/', {
     schema: {
       description: 'List all documents',
       tags: ['Documents'],
       summary: 'List documents (Admin only)',
       headers: authorizationHeadersSchema,
+      response: documentListResponseSchema
     },
     preHandler: [requireRoles(['manager'])]
   }, listDocumentsHandler);
@@ -28,13 +31,14 @@ export async function documentRouter(app: FastifyInstance) {
   app.get<{
     Headers: AuthorizationHeadersType;
     Params: DocumentIdParamType;
-  }>('/documents/:id', {
+  }>('/:id', {
     schema: {
       description: 'Get document by ID',
       tags: ['Documents'],
       summary: 'Get document (Admin only)',
       headers: authorizationHeadersSchema,
       params: documentIdParamSchema,
+      response: documentResponseSchema
     },
     preHandler: [requireRoles(['manager'])]
   }, getDocumentByIdHandler);
@@ -43,13 +47,14 @@ export async function documentRouter(app: FastifyInstance) {
   app.post<{
     Body: CreateDocumentBodyType;
     Headers: AuthorizationHeadersType;
-  }>('/documents', {
+  }>('/', {
     schema: {
       description: 'Create a new document',
       tags: ['Documents'],
       summary: 'Create document (Admin only)',
       body: createDocumentBodySchema,
       headers: authorizationHeadersSchema,
+      response: documentResponseSchema
     },
     preHandler: [requireRoles(['manager'])]
   }, createDocumentHandler);
@@ -59,7 +64,7 @@ export async function documentRouter(app: FastifyInstance) {
     Body: UpdateDocumentBodyType;
     Headers: AuthorizationHeadersType;
     Params: DocumentIdParamType;
-  }>('/documents/:id', {
+  }>('/:id', {
     schema: {
       description: 'Update document',
       tags: ['Documents'],
@@ -67,6 +72,7 @@ export async function documentRouter(app: FastifyInstance) {
       body: updateDocumentBodySchema,
       headers: authorizationHeadersSchema,
       params: documentIdParamSchema,
+      response: documentResponseSchema
     },
     preHandler: [requireRoles(['manager'])]
   }, updateDocumentHandler);
@@ -75,13 +81,14 @@ export async function documentRouter(app: FastifyInstance) {
   app.delete<{
     Headers: AuthorizationHeadersType;
     Params: DocumentIdParamType;
-  }>('/documents/:id', {
+  }>('/:id', {
     schema: {
       description: 'Delete document',
       tags: ['Documents'],
       summary: 'Delete document (Admin only)',
       headers: authorizationHeadersSchema,
       params: documentIdParamSchema,
+      response: documentDeleteResponseSchema
     },
     preHandler: [requireRoles(['manager'])]
   }, deleteDocumentHandler);

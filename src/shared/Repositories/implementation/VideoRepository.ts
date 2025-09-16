@@ -1,4 +1,5 @@
 import { DataSource, MongoRepository } from "typeorm";
+import { ObjectId } from "mongodb";
 import { IVIdeoRepository } from "../model/IVideoRepository";
 import { Video } from "../../infra/databases/Entititities";
 
@@ -10,8 +11,14 @@ export class VideoRepository implements IVIdeoRepository {
   }
 
   public async findById(id: string): Promise<any | null> {
-    const video = await this.ormRepository.findOne({ where: { id } });
-    return video || null;
+    try {
+      const objectId = new ObjectId(id);
+      const video = await this.ormRepository.findOne({ where: { _id: objectId } });
+      return video || null;
+    } catch (error) {
+      console.error('Error finding video by ID:', error);
+      return null;
+    }
   }
 
   public async findAll(): Promise<any[]> {
@@ -26,12 +33,24 @@ export class VideoRepository implements IVIdeoRepository {
   }
 
   public async update(id: string, data: Partial<Video>): Promise<any> {
-    await this.ormRepository.update(id, data);
-    const updatedVideo = await this.findById(id);
-    return updatedVideo;
+    try {
+      const objectId = new ObjectId(id);
+      await this.ormRepository.update(objectId, data);
+      const updatedVideo = await this.findById(id);
+      return updatedVideo;
+    } catch (error) {
+      console.error('Error updating video:', error);
+      throw error;
+    }
   }
 
   public async delete(id: string): Promise<void> {
-    await this.ormRepository.delete(id);
+    try {
+      const objectId = new ObjectId(id);
+      await this.ormRepository.delete(objectId);
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      throw error;
+    }
   }
 }

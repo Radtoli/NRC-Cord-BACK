@@ -1,11 +1,12 @@
 import { UserRepository } from "../Repositories/implementation/UserRepository";
+import { CreateUserService } from "../../modules/User/Services/CreateUserService";
 import { CreateUserDTO } from "../../modules/User/DTOs/CreateUserDTO";
-import { PasswordHasher } from "../utils/PasswordHasher";
 import { ObjectId } from "mongodb";
 
 export class AdminInitializerService {
   constructor(
-    private userRepository: UserRepository
+    private userRepository: UserRepository,
+    private createUserService: CreateUserService
   ) { }
 
   async initializeAdminUser(): Promise<void> {
@@ -31,12 +32,11 @@ export class AdminInitializerService {
       }
 
       // Criar usuário admin se não existir
-      const hashedPassword = await PasswordHasher.hash(adminPassword);
-
+      const createdByUserId = new ObjectId(); // Self-created
       const adminData: CreateUserDTO = {
         name: adminName,
         email: adminEmail,
-        password: hashedPassword,
+        password: adminPassword, // Senha em texto limpo - será hashada pelo CreateUserService
         demolayId: 999999, // ID especial para admin
         roles: ['manager'],
         permissions: ['admin', 'manager', 'user'],
@@ -44,10 +44,10 @@ export class AdminInitializerService {
           theme: 'light',
           language: 'pt-BR'
         },
-        createdBy: new ObjectId() // Self-created
+        createdBy: createdByUserId
       };
 
-      await this.userRepository.create(adminData);
+      await this.createUserService.execute(adminData, createdByUserId);
 
       console.log('🚀 Usuário admin criado com sucesso!');
       console.log('📧 Email:', adminEmail);

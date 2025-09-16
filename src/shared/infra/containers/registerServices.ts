@@ -3,6 +3,8 @@ import { CreateUserService } from "../../../modules/User/Services/CreateUserServ
 import { LoginUserService } from "../../../modules/User/Services/LoginUserService";
 import { ChangePasswordService } from "../../../modules/User/Services/ChangePasswordService";
 import { UpdateUserService } from "../../../modules/User/Services/UpdateUserService";
+import { ListUsersService } from "../../../modules/User/Services/ListUsersService";
+import { DeleteUserService } from "../../../modules/User/Services/DeleteUserService";
 
 // Document Services
 import { CreateDocumentService } from "../../../modules/Document/Services/CreateDocumentService";
@@ -22,6 +24,8 @@ export function registerServices(container: AwilixContainer): void {
   container.register('loginUserService', asClass(LoginUserService).singleton());
   container.register('changePasswordService', asClass(ChangePasswordService).singleton());
   container.register('updateUserService', asClass(UpdateUserService).singleton());
+  container.register('listUsersService', asClass(ListUsersService).singleton());
+  container.register('deleteUserService', asClass(DeleteUserService).singleton());
 
   // Document Services
   container.register('createDocumentService', asClass(CreateDocumentService).singleton());
