@@ -39,7 +39,6 @@ RUN npm install --only=production && \
 
 # Copiar arquivos necessários do stage de build
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/healthcheck.js ./healthcheck.js
 
 # Criar um usuário não-root para executar a aplicação
 RUN addgroup -g 1001 -S nodejs && \
@@ -55,10 +54,6 @@ EXPOSE 3001
 # Variáveis de ambiente padrão
 ENV NODE_ENV=production
 ENV PORT=3001
-
-# Comando healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node healthcheck.js || exit 1
 
 # Comando para iniciar a aplicação
 CMD ["npm", "start"]
