@@ -12,10 +12,13 @@ RUN apk add --no-cache \
     && ln -sf python3 /usr/bin/python
 
 # Copiar package.json e package-lock.json (se existir)
+# ...existing code...
 COPY package*.json ./
+COPY package-lock.json ./
 
-# Instalar dependências
-RUN npm ci --only=production
+# Instalar dependências (sintaxe atualizada)
+RUN npm ci --omit=dev
+# ...existing code...
 
 # Copiar o código fonte
 COPY . .
