@@ -44,8 +44,6 @@ const corsOrigins = process.env.CORS_ORIGINS
       'https://nrc-coord-front.vercel.app'
     ];
 
-console.log('[CORS] Allowed origins:', corsOrigins);
-
 app.register(fastifyCors, {
   origin: corsOrigins,
   credentials: true,

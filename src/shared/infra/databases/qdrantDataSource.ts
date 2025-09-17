@@ -8,27 +8,21 @@ class QdrantDataSource {
 
   async initialize(): Promise<void> {
     if (this.isConnected) {
-      console.log('Qdrant já está conectado');
       return;
     }
 
     const host = process.env.QDRANT_HOST || 'localhost';
     const apiKey = process.env.QDRANT_API_KEY;
 
-    // Detecta se é um host externo (Railway, etc.)
     const isExternalHost = !host.includes('localhost') && !host.includes('127.0.0.1') && !host.includes('192.168.');
 
-    // URL baseada no teste que funcionou
     this.baseUrl = isExternalHost ? `https://${host}` : `http://${host}:${process.env.QDRANT_PORT || 6333}`;
 
     try {
-      console.log(`Conectando ao Qdrant em: ${this.baseUrl}`);
-
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
 
-      // Adiciona API key se fornecida
       if (apiKey && apiKey.trim() !== '') {
         headers['Authorization'] = `Bearer ${apiKey}`;
       }
@@ -36,7 +30,7 @@ class QdrantDataSource {
       const response = await fetch(`${this.baseUrl}/collections`, {
         method: 'GET',
         headers,
-        signal: AbortSignal.timeout(30000), // 30 segundos de timeout
+        signal: AbortSignal.timeout(30000),
       });
 
       if (!response.ok) {
@@ -46,7 +40,6 @@ class QdrantDataSource {
       await response.json();
 
       this.isConnected = true;
-      console.log(`✅ Qdrant conectado com sucesso`);
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';

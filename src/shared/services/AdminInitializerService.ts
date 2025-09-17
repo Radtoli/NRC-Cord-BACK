@@ -15,29 +15,24 @@ export class AdminInitializerService {
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
     try {
-      // Verificar se já existe um usuário admin
       const existingAdmin = await this.userRepository.findByEmail(adminEmail);
 
       if (existingAdmin) {
-        console.log('✅ Usuário admin já existe:', adminEmail);
         return;
       }
 
-      // Verificar se existe pelo menos um usuário manager
       const existingManagers = await this.userRepository.findByRole('manager');
 
       if (existingManagers && existingManagers.length > 0) {
-        console.log('✅ Usuários manager já existem no sistema');
         return;
       }
 
-      // Criar usuário admin se não existir
-      const createdByUserId = new ObjectId(); // Self-created
+      const createdByUserId = new ObjectId();
       const adminData: CreateUserDTO = {
         name: adminName,
         email: adminEmail,
-        password: adminPassword, // Senha em texto limpo - será hashada pelo CreateUserService
-        demolayId: 999999, // ID especial para admin
+        password: adminPassword,
+        demolayId: 999999,
         roles: ['manager'],
         permissions: ['admin', 'manager', 'user'],
         settings: {
@@ -48,11 +43,6 @@ export class AdminInitializerService {
       };
 
       await this.createUserService.execute(adminData, createdByUserId);
-
-      console.log('🚀 Usuário admin criado com sucesso!');
-      console.log('📧 Email:', adminEmail);
-      console.log('🔑 Senha:', adminPassword);
-      console.log('⚠️  IMPORTANTE: Altere a senha após o primeiro login!');
 
     } catch (error) {
       console.error('❌ Erro ao criar usuário admin:', error);

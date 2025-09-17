@@ -8,7 +8,6 @@ export class LoginUserService {
   constructor(private userRepository: UserRepository) { }
 
   async execute(data: LoginDTO): Promise<LoginResponseDTO> {
-    // Buscar usuário por email
     const users = await this.userRepository.findAll();
     const user = users.find(u => u.email.toLowerCase() === data.email.toLowerCase());
 
@@ -16,19 +15,16 @@ export class LoginUserService {
       throw new InvalidCredentialsError();
     }
 
-    // Verificar se o usuário está ativo
     if (user.status !== 'active') {
       throw new InvalidCredentialsError();
     }
 
-    // Verificar senha
     const isPasswordValid = await PasswordHasher.verify(data.password, user.passwordHash);
 
     if (!isPasswordValid) {
       throw new InvalidCredentialsError();
     }
 
-    // Atualizar último login
     const updatedMeta = {
       ...user.meta,
       loginCount: user.meta.loginCount + 1
@@ -39,10 +35,8 @@ export class LoginUserService {
       meta: updatedMeta
     });
 
-    // Gerar JWT
     const token = JWTUtils.generateToken(user._id, user.email);
 
-    // Retornar resposta sem dados sensíveis
     return {
       user: {
         _id: user._id.toString(),

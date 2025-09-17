@@ -3,17 +3,13 @@ import { CreateVideoDTO, UpdateVideoDTO } from "../DTOs/VideoDTO";
 import { IVIdeoRepository } from "../../../shared/Repositories/model/IVideoRepository";
 import { Video } from "../../../shared/infra/databases/Entititities/Video";
 
-// Função utilitária para extrair YouTube ID
 function extractYouTubeId(url: string): string {
-  // Remove spaces and trim
   url = url.trim();
 
-  // If it's already just the ID
   if (url.length === 11 && /^[a-zA-Z0-9_-]+$/.test(url)) {
     return url;
   }
 
-  // Extract from various YouTube URL formats
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
     /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
@@ -27,7 +23,7 @@ function extractYouTubeId(url: string): string {
     }
   }
 
-  return url; // Return as is if no pattern matches
+  return url;
 }
 
 export class CreateVideoService {
@@ -38,7 +34,6 @@ export class CreateVideoService {
     video.title = data.title;
     video.description = data.description;
 
-    // Extrair youtubeId da URL
     video.youtubeId = extractYouTubeId(data.url);
 
     video.duration = data.duration?.toString();

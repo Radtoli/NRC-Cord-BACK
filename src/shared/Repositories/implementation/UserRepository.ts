@@ -16,7 +16,6 @@ export class UserRepository implements IUserRepository {
       const user = await this.ormRepository.findOne({ where: { _id: objectId } });
       return user || null;
     } catch (error) {
-      console.error('Error finding user by ID:', error);
       return null;
     }
   }
@@ -44,18 +43,14 @@ export class UserRepository implements IUserRepository {
 
   public async update(id: string, data: Partial<User>): Promise<any> {
     try {
-      console.log('UserRepository.update called with:', { id, data });
       const objectId = new ObjectId(id);
 
       const result = await this.ormRepository.update(objectId, data);
-      console.log('Update result:', result);
 
       const updatedUser = await this.findById(id);
-      console.log('Updated user retrieved:', updatedUser);
 
       return updatedUser;
     } catch (error) {
-      console.error('Error updating user:', error);
       throw error;
     }
   }
@@ -65,7 +60,6 @@ export class UserRepository implements IUserRepository {
       const objectId = new ObjectId(id);
       await this.ormRepository.delete(objectId);
     } catch (error) {
-      console.error('Error deleting user:', error);
       throw error;
     }
   }

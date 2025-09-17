@@ -51,9 +51,7 @@ export class UpdateUserService {
     };
 
     // Atualizar usuário
-    console.log('Updating user with data:', updateData);
     const updatedUser = await this.userRepository.update(userId.toString(), updateData);
-    console.log('User updated, result:', updatedUser);
 
     // Retornar dados do usuário atualizado
     return this.mapToResponseDTO(updatedUser);
