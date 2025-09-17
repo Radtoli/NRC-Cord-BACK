@@ -28,14 +28,26 @@ const app = fastify({
 });
 
 // Configure CORS
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+  : process.env.NODE_ENV === 'production'
+    ? [
+      'https://nrc-coord-front-dev.up.railway.app',
+      'https://nrc-coord-front.vercel.app'
+    ]
+    : [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'http://localhost:3003',
+      'https://nrc-coord-front-dev.up.railway.app',
+      'https://nrc-coord-front.vercel.app'
+    ];
+
+console.log('[CORS] Allowed origins:', corsOrigins);
+
 app.register(fastifyCors, {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'http://localhost:3003',
-    'https://nrc-coord-front.vercel.app'
-  ],
+  origin: corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
 });
