@@ -48,9 +48,7 @@ class QdrantDataSource {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Erro desconhecido';
-      console.warn(
-        `⚠️  Falha ao conectar com Qdrant: ${errorMessage}. Serviço continuará sem funcionalidades de embeddings.`,
-      );
+
       this.baseUrl = null;
       this.isConnected = false;
     }

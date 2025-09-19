@@ -28,10 +28,8 @@ export class AddDocumentService {
     data: AddDocumentDTO,
   ): Promise<{ success: boolean; id: string }> {
     try {
-      // Gerar embedding através da API do microserviço
       const embeddingResponse = await this.generateEmbedding(data.text);
 
-      // Adicionar documento ao Qdrant
       await this.qdrantProvider.addDocument(
         data.text,
         data.provaId,
@@ -45,7 +43,6 @@ export class AddDocumentService {
         id: `${data.provaId}_${Date.now()}`,
       };
     } catch (error) {
-      console.error('AddDocumentService Error:', error);
       throw new Error('Failed to add document to Qdrant');
     }
   }
@@ -71,7 +68,6 @@ export class AddDocumentService {
 
       return (await response.json()) as EmbeddingResponse;
     } catch (error) {
-      console.error('Embedding API Error:', error);
       throw new Error('Failed to generate embedding');
     }
   }
@@ -82,10 +78,8 @@ export class SearchDocumentService {
 
   async execute(data: SearchDocumentDTO): Promise<SearchResult[]> {
     try {
-      // Gerar embedding da query
       const embeddingResponse = await this.generateEmbedding(data.query);
 
-      // Salvar a consulta como documento no Qdrant
       await this.qdrantProvider.addDocument(
         data.query,
         data.provaId,
@@ -94,7 +88,6 @@ export class SearchDocumentService {
         embeddingResponse.embedding,
       );
 
-      // Buscar no Qdrant
       const searchResult = (await this.qdrantProvider.searchDocuments(
         embeddingResponse.embedding,
         data.tipoProva,
@@ -106,7 +99,6 @@ export class SearchDocumentService {
         return [];
       }
 
-      // Mapear resultados para o formato esperado
       return (
         searchResult.result?.map(item => ({
           id: item.id,
@@ -115,7 +107,6 @@ export class SearchDocumentService {
         })) || []
       );
     } catch (error) {
-      console.error('SearchDocumentService Error:', error);
       throw new Error('Failed to search documents');
     }
   }
@@ -141,7 +132,6 @@ export class SearchDocumentService {
 
       return (await response.json()) as EmbeddingResponse;
     } catch (error) {
-      console.error('Embedding API Error:', error);
       throw new Error('Failed to generate embedding');
     }
   }

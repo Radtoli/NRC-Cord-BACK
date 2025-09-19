@@ -23,7 +23,6 @@ import {
 } from '../Schemas/response/embeddingResponseSchema';
 
 export async function embeddingRoutes(fastify: FastifyInstance) {
-  // Adicionar documento ao vector database (apenas managers)
   fastify.post<{
     Body: AddDocumentBodyType;
     Headers: AuthorizationHeadersType;
@@ -40,7 +39,6 @@ export async function embeddingRoutes(fastify: FastifyInstance) {
     addDocumentHandler,
   );
 
-  // Buscar documentos similares no vector database (todos os usuários autenticados)
   fastify.post<{
     Body: SearchDocumentBodyType;
     Headers: AuthorizationHeadersType;

@@ -23,7 +23,7 @@ export async function startEnvironment() {
     );
     await adminInitializer.initializeAdminUser();
   } catch (error) {
-    console.error('❌ Erro ao inicializar ambiente:', error);
+
     throw error;
   }
 }

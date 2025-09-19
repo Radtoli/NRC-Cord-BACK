@@ -45,7 +45,7 @@ export class AdminInitializerService {
       await this.createUserService.execute(adminData, createdByUserId);
 
     } catch (error) {
-      console.error('❌ Erro ao criar usuário admin:', error);
+
       throw error;
     }
   }

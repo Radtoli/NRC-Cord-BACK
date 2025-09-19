@@ -34,7 +34,6 @@ export async function addDocumentHandler(
       message: 'Document added successfully to vector database',
     });
   } catch (error) {
-    console.error('AddDocumentHandler Error:', error);
     return reply.status(500).send({
       success: false,
       error: 'Internal Server Error',
@@ -69,7 +68,6 @@ export async function searchDocumentHandler(
       message: `Found ${results.length} similar documents`,
     });
   } catch (error) {
-    console.error('SearchDocumentHandler Error:', error);
     return reply.status(500).send({
       success: false,
       error: 'Internal Server Error',
