@@ -30,7 +30,9 @@ export class AddDocumentService {
     try {
       const embeddingResponse = await this.generateEmbedding(data.text);
 
-      await this.qdrantProvider.addDocument(
+      console.log(embeddingResponse);
+
+      const result = await this.qdrantProvider.addDocument(
         data.text,
         data.provaId,
         data.tipoProva,
@@ -38,11 +40,9 @@ export class AddDocumentService {
         embeddingResponse.embedding,
       );
 
-      return {
-        success: true,
-        id: `${data.provaId}_${Date.now()}`,
-      };
+      return result;
     } catch (error) {
+      console.error(error);
       throw new Error('Failed to add document to Qdrant');
     }
   }
@@ -52,22 +52,25 @@ export class AddDocumentService {
       process.env.EMBEDDING_API_URL || 'http://localhost:8000';
 
     try {
-      const response = await fetch(`${embeddingApiUrl}/generate-embedding`, {
+      const response = await fetch(`${embeddingApiUrl}/embed`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ texto: text }),
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Embedding API Error - Status: ${response.status}, Response: ${errorText}`);
         throw new Error(
-          `Embedding API responded with status: ${response.status}`,
+          `Embedding API responded with status: ${response.status} - ${errorText}`,
         );
       }
 
       return (await response.json()) as EmbeddingResponse;
     } catch (error) {
+      console.error('Error generating embedding:', error);
       throw new Error('Failed to generate embedding');
     }
   }
@@ -79,14 +82,6 @@ export class SearchDocumentService {
   async execute(data: SearchDocumentDTO): Promise<SearchResult[]> {
     try {
       const embeddingResponse = await this.generateEmbedding(data.query);
-
-      await this.qdrantProvider.addDocument(
-        data.query,
-        data.provaId,
-        data.tipoProva,
-        data.numeroQuestao,
-        embeddingResponse.embedding,
-      );
 
       const searchResult = (await this.qdrantProvider.searchDocuments(
         embeddingResponse.embedding,
@@ -107,6 +102,7 @@ export class SearchDocumentService {
         })) || []
       );
     } catch (error) {
+      console.error('Error searching documents:', error);
       throw new Error('Failed to search documents');
     }
   }
@@ -116,22 +112,25 @@ export class SearchDocumentService {
       process.env.EMBEDDING_API_URL || 'http://localhost:8000';
 
     try {
-      const response = await fetch(`${embeddingApiUrl}/generate-embedding`, {
+      const response = await fetch(`${embeddingApiUrl}/embed`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ texto: text }),
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Embedding API Error - Status: ${response.status}, Response: ${errorText}`);
         throw new Error(
-          `Embedding API responded with status: ${response.status}`,
+          `Embedding API responded with status: ${response.status} - ${errorText}`,
         );
       }
 
       return (await response.json()) as EmbeddingResponse;
     } catch (error) {
+      console.error('Error generating embedding:', error);
       throw new Error('Failed to generate embedding');
     }
   }

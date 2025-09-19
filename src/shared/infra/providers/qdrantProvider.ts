@@ -1,4 +1,5 @@
 import { qdrantDataSource } from '../databases/qdrantDataSource';
+import { randomUUID } from 'crypto';
 
 export interface QdrantPoint {
   id?: string | number;
@@ -11,6 +12,7 @@ export interface DocumentPayload {
   tipoProva: string;
   numeroQuestao: number;
   text: string;
+  originalId?: string;
   [key: string]: unknown;
 }
 
@@ -25,7 +27,7 @@ export class QdrantProvider {
     tipoProva: string,
     numeroQuestao: number,
     embedding: number[],
-  ) {
+  ): Promise<{ success: boolean; id: string }> {
     const collectionName = `${tipoProva}_q${numeroQuestao}`;
 
     if (!qdrantDataSource.isInitialized) {
@@ -41,8 +43,10 @@ export class QdrantProvider {
       );
     }
 
+    const documentId = randomUUID();
+
     const point: QdrantPoint = {
-      id: `${provaId}_${Date.now()}`,
+      id: documentId,
       vector: embedding,
       payload: {
         provaId,
@@ -50,10 +54,16 @@ export class QdrantProvider {
         numeroQuestao,
         text,
         createdAt: new Date().toISOString(),
+        originalId: `${provaId}_${Date.now()}`,
       } as DocumentPayload,
     };
 
-    return await qdrantDataSource.upsertPoints(collectionName, [point]);
+    await qdrantDataSource.upsertPoints(collectionName, [point]);
+
+    return {
+      success: true,
+      id: documentId,
+    };
   }
 
   async searchDocuments(

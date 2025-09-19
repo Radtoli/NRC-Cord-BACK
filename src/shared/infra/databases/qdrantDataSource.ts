@@ -23,6 +23,8 @@ class QdrantDataSource {
       ? `https://${host}`
       : `http://${host}:${process.env.QDRANT_PORT || 6333}`;
 
+    console.log(`Attempting to connect to Qdrant at: ${this.baseUrl}`);
+
     try {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -30,6 +32,9 @@ class QdrantDataSource {
 
       if (apiKey && apiKey.trim() !== '') {
         headers['Authorization'] = `Bearer ${apiKey}`;
+        console.log('Using API key for Qdrant authentication');
+      } else {
+        console.log('No API key provided for Qdrant');
       }
 
       const response = await fetch(`${this.baseUrl}/collections`, {
@@ -39,18 +44,23 @@ class QdrantDataSource {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error(`Qdrant connection failed - Status: ${response.status}, Response: ${errorText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
       await response.json();
 
       this.isConnected = true;
+      console.log('Successfully connected to Qdrant');
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Erro desconhecido';
 
+      console.error('Failed to initialize Qdrant connection:', errorMessage);
       this.baseUrl = null;
       this.isConnected = false;
+      throw error; // Re-throw to propagate the error
     }
   }
 
@@ -79,14 +89,19 @@ class QdrantDataSource {
       headers['Authorization'] = `Bearer ${apiKey}`;
     }
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+    const url = `${this.baseUrl}${endpoint}`;
+    console.log(`Making Qdrant request: ${options.method || 'GET'} ${url}`);
+
+    const response = await fetch(url, {
       ...options,
       headers,
       signal: AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`Qdrant request failed - Status: ${response.status}, URL: ${url}, Response: ${errorText}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
     }
 
     return await response.json();
