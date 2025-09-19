@@ -14,11 +14,14 @@ export async function startEnvironment() {
     await qdrantDataSource.initialize();
 
     const userRepository = container.resolve<UserRepository>('userRepository');
-    const createUserService = container.resolve<CreateUserService>('createUserService');
+    const createUserService =
+      container.resolve<CreateUserService>('createUserService');
 
-    const adminInitializer = new AdminInitializerService(userRepository, createUserService);
+    const adminInitializer = new AdminInitializerService(
+      userRepository,
+      createUserService,
+    );
     await adminInitializer.initializeAdminUser();
-
   } catch (error) {
     console.error('❌ Erro ao inicializar ambiente:', error);
     throw error;

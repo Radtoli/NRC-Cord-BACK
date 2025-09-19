@@ -1,38 +1,97 @@
-import { asClass, AwilixContainer } from "awilix";
-import { CreateUserService } from "../../../modules/User/Services/CreateUserService";
-import { LoginUserService } from "../../../modules/User/Services/LoginUserService";
-import { ChangePasswordService } from "../../../modules/User/Services/ChangePasswordService";
-import { UpdateUserService } from "../../../modules/User/Services/UpdateUserService";
-import { ListUsersService } from "../../../modules/User/Services/ListUsersService";
-import { DeleteUserService } from "../../../modules/User/Services/DeleteUserService";
+import { asClass, AwilixContainer } from 'awilix';
+import { CreateUserService } from '../../../modules/User/Services/CreateUserService';
+import { LoginUserService } from '../../../modules/User/Services/LoginUserService';
+import { ChangePasswordService } from '../../../modules/User/Services/ChangePasswordService';
+import { UpdateUserService } from '../../../modules/User/Services/UpdateUserService';
+import { ListUsersService } from '../../../modules/User/Services/ListUsersService';
+import { DeleteUserService } from '../../../modules/User/Services/DeleteUserService';
 
-import { CreateDocumentService } from "../../../modules/Document/Services/CreateDocumentService";
-import { UpdateDocumentService } from "../../../modules/Document/Services/UpdateDocumentService";
-import { DeleteDocumentService } from "../../../modules/Document/Services/DeleteDocumentService";
-import { ListDocumentsService } from "../../../modules/Document/Services/ListDocumentsService";
+import { CreateDocumentService } from '../../../modules/Document/Services/CreateDocumentService';
+import { UpdateDocumentService } from '../../../modules/Document/Services/UpdateDocumentService';
+import { DeleteDocumentService } from '../../../modules/Document/Services/DeleteDocumentService';
+import { ListDocumentsService } from '../../../modules/Document/Services/ListDocumentsService';
 
-import { TrilhaService } from "../../../modules/Trilha/Services/TrilhaService";
+import { TrilhaService } from '../../../modules/Trilha/Services/TrilhaService';
 
-import { CreateVideoService, UpdateVideoService, DeleteVideoService, ListVideosService, GetVideoByIdService } from "../../../modules/Video/Services/VideoService";
+import {
+  CreateVideoService,
+  UpdateVideoService,
+  DeleteVideoService,
+  ListVideosService,
+  GetVideoByIdService,
+} from '../../../modules/Video/Services/VideoService';
+
+import {
+  AddDocumentService,
+  SearchDocumentService,
+} from '../../../modules/Embeding/services/EmbeddingService';
 
 export function registerServices(container: AwilixContainer): void {
-  container.register('createUserService', asClass(CreateUserService).singleton());
+  container.register(
+    'createUserService',
+    asClass(CreateUserService).singleton(),
+  );
   container.register('loginUserService', asClass(LoginUserService).singleton());
-  container.register('changePasswordService', asClass(ChangePasswordService).singleton());
-  container.register('updateUserService', asClass(UpdateUserService).singleton());
+  container.register(
+    'changePasswordService',
+    asClass(ChangePasswordService).singleton(),
+  );
+  container.register(
+    'updateUserService',
+    asClass(UpdateUserService).singleton(),
+  );
   container.register('listUsersService', asClass(ListUsersService).singleton());
-  container.register('deleteUserService', asClass(DeleteUserService).singleton());
+  container.register(
+    'deleteUserService',
+    asClass(DeleteUserService).singleton(),
+  );
 
-  container.register('createDocumentService', asClass(CreateDocumentService).singleton());
-  container.register('updateDocumentService', asClass(UpdateDocumentService).singleton());
-  container.register('deleteDocumentService', asClass(DeleteDocumentService).singleton());
-  container.register('listDocumentsService', asClass(ListDocumentsService).singleton());
+  container.register(
+    'createDocumentService',
+    asClass(CreateDocumentService).singleton(),
+  );
+  container.register(
+    'updateDocumentService',
+    asClass(UpdateDocumentService).singleton(),
+  );
+  container.register(
+    'deleteDocumentService',
+    asClass(DeleteDocumentService).singleton(),
+  );
+  container.register(
+    'listDocumentsService',
+    asClass(ListDocumentsService).singleton(),
+  );
 
   container.register('trilhaService', asClass(TrilhaService).singleton());
 
-  container.register('createVideoService', asClass(CreateVideoService).singleton());
-  container.register('updateVideoService', asClass(UpdateVideoService).singleton());
-  container.register('deleteVideoService', asClass(DeleteVideoService).singleton());
-  container.register('listVideosService', asClass(ListVideosService).singleton());
-  container.register('getVideoByIdService', asClass(GetVideoByIdService).singleton());
+  container.register(
+    'createVideoService',
+    asClass(CreateVideoService).singleton(),
+  );
+  container.register(
+    'updateVideoService',
+    asClass(UpdateVideoService).singleton(),
+  );
+  container.register(
+    'deleteVideoService',
+    asClass(DeleteVideoService).singleton(),
+  );
+  container.register(
+    'listVideosService',
+    asClass(ListVideosService).singleton(),
+  );
+  container.register(
+    'getVideoByIdService',
+    asClass(GetVideoByIdService).singleton(),
+  );
+
+  container.register(
+    'addDocumentService',
+    asClass(AddDocumentService).singleton(),
+  );
+  container.register(
+    'searchDocumentService',
+    asClass(SearchDocumentService).singleton(),
+  );
 }

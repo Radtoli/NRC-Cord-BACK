@@ -14,9 +14,14 @@ class QdrantDataSource {
     const host = process.env.QDRANT_HOST || 'localhost';
     const apiKey = process.env.QDRANT_API_KEY;
 
-    const isExternalHost = !host.includes('localhost') && !host.includes('127.0.0.1') && !host.includes('192.168.');
+    const isExternalHost =
+      !host.includes('localhost') &&
+      !host.includes('127.0.0.1') &&
+      !host.includes('192.168.');
 
-    this.baseUrl = isExternalHost ? `https://${host}` : `http://${host}:${process.env.QDRANT_PORT || 6333}`;
+    this.baseUrl = isExternalHost
+      ? `https://${host}`
+      : `http://${host}:${process.env.QDRANT_PORT || 6333}`;
 
     try {
       const headers: Record<string, string> = {
@@ -40,10 +45,12 @@ class QdrantDataSource {
       await response.json();
 
       this.isConnected = true;
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      console.warn(`⚠️  Falha ao conectar com Qdrant: ${errorMessage}. Serviço continuará sem funcionalidades de embeddings.`);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      console.warn(
+        `⚠️  Falha ao conectar com Qdrant: ${errorMessage}. Serviço continuará sem funcionalidades de embeddings.`,
+      );
       this.baseUrl = null;
       this.isConnected = false;
     }
@@ -56,7 +63,10 @@ class QdrantDataSource {
     }
   }
 
-  private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
+  private async makeRequest(
+    endpoint: string,
+    options: RequestInit = {},
+  ): Promise<unknown> {
     if (!this.baseUrl || !this.isConnected) {
       throw new Error('Qdrant não está inicializado ou conexão falhou.');
     }
@@ -93,11 +103,15 @@ class QdrantDataSource {
     return await this.makeRequest('/collections');
   }
 
-  async createCollection(name: string, vectorSize: number, distance: 'Cosine' | 'Euclid' | 'Dot' = 'Cosine') {
+  async createCollection(
+    name: string,
+    vectorSize: number,
+    distance: 'Cosine' | 'Euclid' | 'Dot' = 'Cosine',
+  ) {
     const body = {
       vectors: {
         size: vectorSize,
-        distance: distance,
+        distance,
       },
     };
 
@@ -122,7 +136,7 @@ class QdrantDataSource {
 
   async upsertPoints(collectionName: string, points: any[]) {
     const body = {
-      points: points,
+      points,
     };
 
     return await this.makeRequest(`/collections/${collectionName}/points`, {
@@ -131,20 +145,28 @@ class QdrantDataSource {
     });
   }
 
-  async searchPoints(collectionName: string, vector: number[], limit: number = 10, filter?: any) {
-    const body: any = {
-      vector: vector,
-      limit: limit,
+  async searchPoints(
+    collectionName: string,
+    vector: number[],
+    limit: number = 10,
+    filter?: unknown,
+  ) {
+    const body: { vector: number[]; limit: number; filter?: unknown } = {
+      vector,
+      limit,
     };
 
     if (filter) {
       body.filter = filter;
     }
 
-    return await this.makeRequest(`/collections/${collectionName}/points/search`, {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
+    return await this.makeRequest(
+      `/collections/${collectionName}/points/search`,
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+      },
+    );
   }
 }
 
