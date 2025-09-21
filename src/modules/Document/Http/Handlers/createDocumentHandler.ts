@@ -31,7 +31,7 @@ export async function createDocumentHandler(
       type: request.body.type as 'pdf' | 'doc' | 'ppt' | 'xlsx',
       url: request.body.url,
       size: request.body.size,
-      video: new ObjectId(request.body.video)
+      video: request.body.video ? new ObjectId(request.body.video) : undefined
     };
 
     const document = await createDocumentService.execute(createDocumentData);

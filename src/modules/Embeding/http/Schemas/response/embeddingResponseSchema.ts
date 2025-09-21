@@ -1,12 +1,13 @@
 export const addDocumentResponseSchema = {
-  200: {
+  201: {
     type: 'object',
     properties: {
       success: { type: 'boolean' },
       data: {
         type: 'object',
         properties: {
-          id: { type: 'string' },
+          success: { type: 'boolean' },
+          id: { type: 'string', format: 'uuid' },
         },
       },
       message: { type: 'string' },
@@ -18,6 +19,7 @@ export const addDocumentResponseSchema = {
       success: { type: 'boolean' },
       error: { type: 'string' },
       message: { type: 'string' },
+      details: { type: 'string' },
     },
   },
   500: {
@@ -26,6 +28,16 @@ export const addDocumentResponseSchema = {
       success: { type: 'boolean' },
       error: { type: 'string' },
       message: { type: 'string' },
+      details: { type: 'string' },
+    },
+  },
+  502: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean' },
+      error: { type: 'string' },
+      message: { type: 'string' },
+      details: { type: 'string' },
     },
   },
 } as const;
@@ -50,6 +62,7 @@ export const searchDocumentResponseSchema = {
                 numeroQuestao: { type: 'number' },
                 text: { type: 'string' },
                 createdAt: { type: 'string' },
+                originalId: { type: 'string' },
               },
             },
           },
@@ -64,6 +77,7 @@ export const searchDocumentResponseSchema = {
       success: { type: 'boolean' },
       error: { type: 'string' },
       message: { type: 'string' },
+      details: { type: 'string' },
     },
   },
   500: {
@@ -72,6 +86,16 @@ export const searchDocumentResponseSchema = {
       success: { type: 'boolean' },
       error: { type: 'string' },
       message: { type: 'string' },
+      details: { type: 'string' },
+    },
+  },
+  502: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean' },
+      error: { type: 'string' },
+      message: { type: 'string' },
+      details: { type: 'string' },
     },
   },
 } as const;

@@ -5,7 +5,7 @@ export interface CreateDocumentDTO {
   type: 'pdf' | 'doc' | 'ppt' | 'xlsx';
   url: string;
   size: string;
-  video: ObjectId;
+  video?: ObjectId;
 }
 
 export interface UpdateDocumentDTO {
@@ -22,7 +22,7 @@ export interface DocumentResponseDTO {
   type: 'pdf' | 'doc' | 'ppt' | 'xlsx';
   url: string;
   size: string;
-  video: ObjectId;
+  video?: ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }

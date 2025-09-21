@@ -14,7 +14,7 @@ export class CreateDocumentService {
       type: data.type,
       url: data.url,
       size: data.size,
-      video: data.video
+      video: data.video || undefined
     };
 
     const document = await this.documentRepository.create(documentData);
