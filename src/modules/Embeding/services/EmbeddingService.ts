@@ -11,7 +11,7 @@ interface QdrantSearchResult {
   result?: Array<{
     id: string | number;
     score: number;
-    payload: {
+    payload?: {
       provaId: string;
       tipoProva: string;
       numeroQuestao: number;
@@ -20,6 +20,18 @@ interface QdrantSearchResult {
     };
   }>;
 }
+
+interface QdrantDirectResult extends Array<{
+  id: string | number;
+  score: number;
+  payload?: {
+    provaId: string;
+    tipoProva: string;
+    numeroQuestao: number;
+    text: string;
+    createdAt: string;
+  };
+}> {}
 
 export class AddDocumentService {
   constructor(private qdrantProvider: QdrantProvider) { }
@@ -83,24 +95,50 @@ export class SearchDocumentService {
     try {
       const embeddingResponse = await this.generateEmbedding(data.query);
 
-      const searchResult = (await this.qdrantProvider.searchDocuments(
+      const searchResult = await this.qdrantProvider.searchDocuments(
         embeddingResponse.embedding,
         data.tipoProva,
         data.numeroQuestao,
         data.limit || 10,
-      )) as QdrantSearchResult;
+      );
 
-      if (searchResult.status === 'collection_not_found') {
+      // Verificar se é um erro de coleção não encontrada
+      if ((searchResult as any).status === 'collection_not_found') {
         return [];
       }
 
-      return (
-        searchResult.result?.map(item => ({
+      // Determinar se a resposta tem a propriedade result ou é um array direto
+      let resultsArray: any[] = [];
+      
+      if (Array.isArray(searchResult)) {
+        // Formato direto (array)
+        resultsArray = searchResult;
+      } else if ((searchResult as any).result && Array.isArray((searchResult as any).result)) {
+        // Formato com propriedade result
+        resultsArray = (searchResult as any).result;
+      } else {
+        console.warn('Unexpected search result format:', searchResult);
+        return [];
+      }
+
+      const processedResults = resultsArray.map(item => {
+        // Se não há payload, criar um payload padrão baseado nos dados disponíveis
+        const payload = item.payload || {
+          provaId: data.provaId,
+          tipoProva: data.tipoProva,
+          numeroQuestao: data.numeroQuestao,
+          text: '',
+          createdAt: new Date().toISOString(),
+        };
+
+        return {
           id: item.id,
           score: item.score,
-          payload: item.payload,
-        })) || []
-      );
+          payload: payload,
+        };
+      });
+
+      return processedResults;
     } catch (error) {
       console.error('Error searching documents:', error);
       throw new Error('Failed to search documents');

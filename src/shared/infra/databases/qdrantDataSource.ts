@@ -164,9 +164,15 @@ class QdrantDataSource {
     limit: number = 10,
     filter?: unknown,
   ) {
-    const body: { vector: number[]; limit: number; filter?: unknown } = {
+    const body: { 
+      vector: number[]; 
+      limit: number; 
+      with_payload: boolean;
+      filter?: unknown;
+    } = {
       vector,
       limit,
+      with_payload: true, // Garantir que o payload seja retornado
     };
 
     if (filter) {
