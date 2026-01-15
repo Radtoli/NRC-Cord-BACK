@@ -1,18 +1,12 @@
-// Arquivo de inicialização do MongoDB
-// Este script é executado automaticamente quando o container MongoDB é criado
-
 print('Iniciando configuração do MongoDB para NRC Tools...');
 
-// Criar o banco de dados se não existir
 db = db.getSiblingDB('nrc_database');
 
-// Criar collections básicas
 db.createCollection('users');
 db.createCollection('videos');
 db.createCollection('trilhas');
 db.createCollection('documents');
 
-// Criar índices para otimização
 db.users.createIndex({ email: 1 }, { unique: true });
 db.users.createIndex({ role: 1 });
 db.videos.createIndex({ youtubeId: 1 });

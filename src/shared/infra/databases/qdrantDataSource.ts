@@ -11,21 +11,28 @@ class QdrantDataSource {
       return;
     }
 
-    const host = process.env.QDRANT_HOST || 'localhost';
-    const apiKey = process.env.QDRANT_API_KEY;
+    // Priorizar QDRANT_URL se fornecida
+    if (process.env.QDRANT_URL) {
+      this.baseUrl = process.env.QDRANT_URL;
+      console.log(`Using QDRANT_URL: ${this.baseUrl}`);
+    } else {
+      const host = process.env.QDRANT_HOST || 'localhost';
+      const apiKey = process.env.QDRANT_API_KEY;
 
-    const isExternalHost =
-      !host.includes('localhost') &&
-      !host.includes('127.0.0.1') &&
-      !host.includes('192.168.');
+      const isExternalHost =
+        !host.includes('localhost') &&
+        !host.includes('127.0.0.1') &&
+        !host.includes('192.168.');
 
-    this.baseUrl = isExternalHost
-      ? `https://${host}`
-      : `http://${host}:${process.env.QDRANT_PORT || 6333}`;
+      this.baseUrl = isExternalHost
+        ? `https://${host}`
+        : `http://${host}:${process.env.QDRANT_PORT || 6333}`;
+    }
 
     console.log(`Attempting to connect to Qdrant at: ${this.baseUrl}`);
 
     try {
+      const apiKey = process.env.QDRANT_API_KEY;
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -164,9 +171,9 @@ class QdrantDataSource {
     limit: number = 10,
     filter?: unknown,
   ) {
-    const body: { 
-      vector: number[]; 
-      limit: number; 
+    const body: {
+      vector: number[];
+      limit: number;
       with_payload: boolean;
       filter?: unknown;
     } = {
