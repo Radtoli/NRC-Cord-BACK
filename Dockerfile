@@ -4,10 +4,6 @@ FROM node:18-alpine AS builder
 # Definir o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Instalar dependências do sistema necessárias para compilação nativa
-RUN apk add --no-cache python3 make g++ && \
-    ln -sf python3 /usr/bin/python
-
 # Copiar apenas package.json (package-lock.json está no .gitignore)
 COPY package.json ./
 
@@ -25,10 +21,6 @@ FROM node:18-alpine AS production
 
 # Definir o diretório de trabalho dentro do container
 WORKDIR /app
-
-# Instalar dependências do sistema necessárias
-RUN apk add --no-cache python3 make g++ && \
-    ln -sf python3 /usr/bin/python
 
 # Copiar apenas package.json (package-lock.json está no .gitignore)
 COPY package.json ./
