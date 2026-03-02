@@ -43,10 +43,22 @@ export class AdminInitializerService {
       };
 
       await this.createUserService.execute(adminData, createdByUserId);
+      console.log('✅ Admin user created successfully');
 
     } catch (error) {
-
-      throw error;
+      // Se o usuário já existe (por email, demolayId ou role), não é um erro fatal —
+      // apenas significa que o seed já foi executado anterior mente.
+      const message = error instanceof Error ? error.message : String(error);
+      if (
+        message.includes('already exists') ||
+        message.includes('duplicate') ||
+        message.includes('E11000')
+      ) {
+        console.log('ℹ️  Admin user already exists, skipping initialization.');
+        return;
+      }
+      // Erros reais (ex: MongoDB offline) devem ser logados mas não travar o boot
+      console.error('⚠️  AdminInitializerService error (non-fatal):', message);
     }
   }
 }
