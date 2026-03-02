@@ -1,13 +1,17 @@
 import fastifyCors from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
+import fastifyMultipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
 import { config } from 'dotenv';
 import fastify from 'fastify';
+import path from 'path';
 import { userRouter } from '../../../modules/User/Http/Routes/user.routes';
 import { documentRouter } from '../../../modules/Document/Http/Routes/document.routes';
 import { trilhaRoutes } from '../../../modules/Trilha/Http/Routes/trilhaRoutes';
 import { videoRoutes } from '../../../modules/Video/Http/Routes/videoRoutes';
 import { embeddingRoutes } from '../../../modules/Embeding/http/Routes/EmbeddingRoutes';
+import { avaRoutes } from '../../../modules/AVA/http/routes/avaRoutes';
 
 config();
 
@@ -81,5 +85,18 @@ app.register(documentRouter, { prefix: '/documents' });
 app.register(trilhaRoutes, { prefix: '/trilhas' });
 app.register(videoRoutes, { prefix: '/videos' });
 app.register(embeddingRoutes, { prefix: '/embedding' });
+app.register(avaRoutes, { prefix: '/ava' });
+
+// Multipart (for file uploads)
+app.register(fastifyMultipart, {
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+});
+
+// Serve uploaded files statically
+const uploadDir = process.env.UPLOAD_DIR ?? path.join(process.cwd(), 'uploads');
+app.register(fastifyStatic, {
+  root: uploadDir,
+  prefix: '/uploads/',
+});
 
 export { app };

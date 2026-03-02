@@ -33,6 +33,8 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
+    "@fastify/multipart": "^9.4.0",
+    "@fastify/static": "^9.0.0",
     "@fastify/swagger": "^9.4.2",
     "@fastify/swagger-ui": "^5.2.2",
     "@qdrant/js-client-rest": "^1.15.1",
@@ -46,7 +48,7 @@
     "awilix": "^12.0.5",
     "bcrypt": "^6.0.0",
     "dotenv": "^16.4.7",
-    "fastify": "^5.2.2",
+    "fastify": "^5.7.4",
     "googleapis": "^159.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.19.0",

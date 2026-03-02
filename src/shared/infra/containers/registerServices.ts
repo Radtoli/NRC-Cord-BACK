@@ -26,6 +26,18 @@ import {
   SearchDocumentService,
 } from '../../../modules/Embeding/services/EmbeddingService';
 
+// AVA Services (PostgreSQL)
+import { CourseService } from '../../../modules/AVA/services/CourseService';
+import { ModuleService } from '../../../modules/AVA/services/ModuleService';
+import { PageService } from '../../../modules/AVA/services/PageService';
+import { SectionService } from '../../../modules/AVA/services/SectionService';
+import { QuizService } from '../../../modules/AVA/services/QuizService';
+import { ProgressService } from '../../../modules/AVA/services/ProgressService';
+import { UploadService } from '../../../modules/AVA/services/UploadService';
+
+// AVA Exam Service (MongoDB)
+import { ExamService } from '../../../modules/AVA/services/ExamService';
+
 export function registerServices(container: AwilixContainer): void {
   container.register(
     'createUserService',
@@ -94,4 +106,16 @@ export function registerServices(container: AwilixContainer): void {
     'searchDocumentService',
     asClass(SearchDocumentService).singleton(),
   );
+
+  // ── AVA Services (PostgreSQL) ────────────────────────────
+  container.register('avaCourseService', asClass(CourseService).singleton());
+  container.register('avaModuleService', asClass(ModuleService).singleton());
+  container.register('avaPageService', asClass(PageService).singleton());
+  container.register('avaSectionService', asClass(SectionService).singleton());
+  container.register('avaQuizService', asClass(QuizService).singleton());
+  container.register('avaProgressService', asClass(ProgressService).singleton());
+  container.register('avaUploadService', asClass(UploadService).singleton());
+
+  // ── AVA Exam Service (MongoDB) ───────────────────────────
+  container.register('avaExamService', asClass(ExamService).singleton());
 }
