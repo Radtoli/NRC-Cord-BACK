@@ -5,7 +5,7 @@ export interface CreateUserDTO {
   email: string;
   password: string;
   demolayId: number;
-  roles?: ('user' | 'manager')[];
+  roles?: ('user' | 'manager' | 'corretor')[];
   permissions?: string[];
   settings?: {
     theme: 'light' | 'dark';
