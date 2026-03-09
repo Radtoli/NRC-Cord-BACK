@@ -1,4 +1,4 @@
-export const userResponseSchema = {
+﻿export const userResponseSchema = {
   200: {
     type: 'object',
     required: ['success', 'data', 'message'],
@@ -16,7 +16,7 @@ export const userResponseSchema = {
             type: 'array',
             items: {
               type: 'string',
-              enum: ['user', 'manager']
+              enum: ['user', 'manager', 'corretor']
             }
           },
           permissions: {
@@ -71,7 +71,7 @@ export const userResponseSchema = {
             type: 'array',
             items: {
               type: 'string',
-              enum: ['user', 'manager']
+              enum: ['user', 'manager', 'corretor']
             }
           },
           permissions: {

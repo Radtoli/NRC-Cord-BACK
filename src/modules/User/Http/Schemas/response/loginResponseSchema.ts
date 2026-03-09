@@ -19,7 +19,7 @@ export const loginResponseSchema = {
                 type: 'array',
                 items: {
                   type: 'string',
-                  enum: ['user', 'manager']
+                  enum: ['user', 'manager', 'corretor']
                 }
               },
               permissions: {

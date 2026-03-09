@@ -5,7 +5,7 @@ export const createUserBodySchema = Type.Object({
   email: Type.String({ format: "email" }),
   password: Type.String({ minLength: 6 }),
   demolayId: Type.Number(),
-  roles: Type.Optional(Type.Array(Type.Union([Type.Literal("user"), Type.Literal("manager")]))),
+  roles: Type.Optional(Type.Array(Type.Union([Type.Literal("user"), Type.Literal("manager"), Type.Literal("corretor")]))),
   permissions: Type.Optional(Type.Array(Type.String())),
   settings: Type.Optional(
     Type.Object({
