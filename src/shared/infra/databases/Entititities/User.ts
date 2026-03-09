@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ObjectId } from 'mongodb';
 
-type UserRole = "user" | "manager";
+type UserRole = "user" | "manager" | "corretor";
 type UserStatus = "active" | "inactive" | "blocked";
 type Theme = "light" | "dark";
 

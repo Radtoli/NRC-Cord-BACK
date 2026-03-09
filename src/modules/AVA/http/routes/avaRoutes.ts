@@ -64,6 +64,9 @@ import {
   startExamHandler,
   submitExamHandler,
   myAttemptsHandler,
+  listPendingCorrectionsHandler,
+  getAttemptForCorrectionHandler,
+  submitCorrectionHandler,
 } from '../handlers/examHandlers';
 
 import {
@@ -111,6 +114,7 @@ function h(fn: any) { return fn as any; }
 // Role shortcuts
 const managerOnly = [checkAuthMiddleware, requireRoles(['manager'])];
 const authenticated = [checkAuthMiddleware];
+const correctorOrManager = [checkAuthMiddleware, requireRoles(['corretor', 'manager'])];
 
 export async function avaRoutes(fastify: FastifyInstance) {
   // ================================================================
@@ -442,5 +446,52 @@ export async function avaRoutes(fastify: FastifyInstance) {
     },
     preHandler: authenticated,
   }, h(myAttemptsHandler));
+
+  // ── Correction (corretor / admin) ────────────────────────────────
+
+  fastify.get('/exam/corrections', {
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: { all: { type: 'string' } },
+      },
+      headers: authorizationHeadersSchema,
+    },
+    preHandler: correctorOrManager,
+  }, h(listPendingCorrectionsHandler));
+
+  fastify.get('/exam/corrections/:id', {
+    schema: {
+      params: { type: 'object', properties: { id: { type: 'string' } } },
+      headers: authorizationHeadersSchema,
+    },
+    preHandler: correctorOrManager,
+  }, h(getAttemptForCorrectionHandler));
+
+  fastify.post('/exam/corrections/:id/submit', {
+    schema: {
+      params: { type: 'object', properties: { id: { type: 'string' } } },
+      body: {
+        type: 'object',
+        required: ['feedbacks'],
+        properties: {
+          feedbacks: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['questionId', 'feedback'],
+              properties: {
+                questionId: { type: 'string' },
+                feedback: { type: 'string' },
+              },
+            },
+          },
+          generalFeedback: { type: 'string' },
+        },
+      },
+      headers: authorizationHeadersSchema,
+    },
+    preHandler: correctorOrManager,
+  }, h(submitCorrectionHandler));
 }
 

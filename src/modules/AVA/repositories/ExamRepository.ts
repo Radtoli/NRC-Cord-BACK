@@ -113,6 +113,22 @@ export class ExamRepository {
     return this.attemptRepo.find({ where });
   }
 
+  /** Retorna todos os attempts concluídos que têm questões abertas e ainda não foram corrigidos */
+  async findPendingCorrections(): Promise<ExamAttempt[]> {
+    // We filter in application layer since MongoDB TypeORM has limited query support
+    const all = await this.attemptRepo.find({ where: { completed: true } as any });
+    return all.filter((a) => {
+      const hasOpenQuestion = a.questions.some((q) => q.questionType === 'open');
+      return hasOpenQuestion && !a.correctorId;
+    });
+  }
+
+  /** Retorna todos os attempts concluídos que têm questões abertas (corrigidos e pendentes) */
+  async findAllCompletedWithOpenQuestions(): Promise<ExamAttempt[]> {
+    const all = await this.attemptRepo.find({ where: { completed: true } as any });
+    return all.filter((a) => a.questions.some((q) => q.questionType === 'open'));
+  }
+
   async updateAttempt(id: string, data: Partial<ExamAttempt>): Promise<ExamAttempt | null> {
     await this.attemptRepo.updateOne({ _id: new ObjectId(id) }, { $set: data });
     return this.findAttemptById(id);

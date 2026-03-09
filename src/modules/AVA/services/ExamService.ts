@@ -1,10 +1,13 @@
 import { ExamRepository } from '../repositories/ExamRepository';
 import { ExamBank } from '../../../shared/infra/databases/Entititities/ExamBank';
 import { ExamQuestion, ExamOptionRaw, ExamQuestionType } from '../../../shared/infra/databases/Entititities/ExamQuestion';
-import { ExamAttempt, AttemptQuestionSnapshot, AttemptAnswer } from '../../../shared/infra/databases/Entititities/ExamAttempt';
+import { ExamAttempt, AttemptQuestionSnapshot, AttemptAnswer, CorrectorFeedback, PlagiarismResult } from '../../../shared/infra/databases/Entititities/ExamAttempt';
+import { AddDocumentService, SearchDocumentService } from '../../Embeding/services/EmbeddingService';
 
 const EXAM_QUESTION_COUNT = 10;
 const PASSING_SCORE = 60; // percentual mínimo para aprovação
+/** Score >= threshold → potential plagiarism detected */
+const PLAGIARISM_THRESHOLD = 0.85;
 
 // ── DTOs ──────────────────────────────────────────────────────────
 
@@ -31,12 +34,41 @@ export interface ExamResultDTO {
   passed: boolean;
   byAxis: Record<string, { score: number; total: number }>;
   answers: AttemptAnswer[];
+  hasOpenQuestions: boolean;
+  plagiarismResults?: PlagiarismResult[];
+}
+
+export interface SubmitCorrectionDTO {
+  feedbacks: CorrectorFeedback[];
+  generalFeedback?: string;
+}
+
+export interface AttemptForCorrectionDTO {
+  _id: string;
+  moduleId: string;
+  bankId: string;
+  questions: AttemptQuestionSnapshot[];
+  answers: AttemptAnswer[];
+  score: number;
+  passed: boolean;
+  completed: boolean;
+  startedAt: Date;
+  completedAt?: Date;
+  plagiarismResults?: PlagiarismResult[];
+  correctorFeedbacks?: CorrectorFeedback[];
+  generalFeedback?: string;
+  correctedAt?: Date;
+  correctorId?: string;
 }
 
 // ── Service ───────────────────────────────────────────────────────
 
 export class ExamService {
-  constructor(private examRepository: ExamRepository) { }
+  constructor(
+    private examRepository: ExamRepository,
+    private addDocumentService: AddDocumentService,
+    private searchDocumentService: SearchDocumentService,
+  ) { }
 
   // ── Banks ────────────────────────────────────────────────────────
 
@@ -164,6 +196,7 @@ export class ExamService {
   /**
    * Submete respostas e calcula a nota.
    * answers: [{ questionId, answer }] — answer é o texto para open, índice (string) para múltipla.
+   * Para questões abertas: registra no banco de anti-plágio e verifica similaridade.
    */
   async submitExam(
     attemptId: string,
@@ -183,6 +216,8 @@ export class ExamService {
     let totalScore = 0;
     const byAxis: Record<string, { score: number; total: number }> = {};
     const savedAnswers: AttemptAnswer[] = [];
+    const plagiarismResults: PlagiarismResult[] = [];
+    let hasOpenQuestions = false;
 
     for (const snap of attempt.questions) {
       const fullQ = fullQuestions.find((fq) => fq?._id.toHexString() === snap.questionId);
@@ -192,8 +227,57 @@ export class ExamService {
 
       if (fullQ && userAnswer) {
         if (snap.questionType === 'open') {
-          // Open questions always get full score if answered (teacher grades later); for now 100
-          scoreObtained = userAnswer.answer.trim() ? 100 : 0;
+          hasOpenQuestions = true;
+          // Open questions start with 0 — corrector grades later
+          scoreObtained = 0;
+
+          const answerText = userAnswer.answer.trim();
+          if (answerText) {
+            // Check plagiarism BEFORE registering
+            let plagiarismPassed = true;
+            const similarAttemptIds: string[] = [];
+
+            try {
+              const searchResults = await this.searchDocumentService.execute({
+                query: answerText,
+                provaId: attemptId,
+                tipoProva: 'exam',
+                numeroQuestao: snap.questionId as any,
+                limit: 5,
+              });
+
+              for (const r of searchResults) {
+                if (r.score >= PLAGIARISM_THRESHOLD) {
+                  plagiarismPassed = false;
+                  const similarId = (r as any).payload?.provaId;
+                  if (similarId && !similarAttemptIds.includes(similarId)) {
+                    similarAttemptIds.push(similarId);
+                  }
+                }
+              }
+            } catch (err) {
+              // Embedding service unavailable — skip plagiarism check silently
+              console.warn('[Plagiarism] Search failed:', (err as Error).message);
+            }
+
+            plagiarismResults.push({
+              questionId: snap.questionId,
+              passed: plagiarismPassed,
+              similarAttemptIds,
+            });
+
+            // Register answer in anti-plagiarism bank
+            try {
+              await this.addDocumentService.execute({
+                text: answerText,
+                provaId: attemptId,
+                tipoProva: 'exam',
+                numeroQuestao: snap.questionId as any,
+              });
+            } catch (err) {
+              console.warn('[Plagiarism] Add document failed:', (err as Error).message);
+            }
+          }
         } else if (snap.questionType === 'multiple_choice') {
           const chosenIdx = parseInt(userAnswer.answer, 10);
           const opt = fullQ.options[chosenIdx];
@@ -205,11 +289,16 @@ export class ExamService {
         }
       }
 
-      totalScore += scoreObtained;
+      // Open questions start at 0 but don't count toward score until graded
+      if (snap.questionType !== 'open') {
+        totalScore += scoreObtained;
+      }
 
       const axis = snap.axis ?? '__geral__';
       if (!byAxis[axis]) byAxis[axis] = { score: 0, total: 0 };
-      byAxis[axis].score += scoreObtained;
+      if (snap.questionType !== 'open') {
+        byAxis[axis].score += scoreObtained;
+      }
       byAxis[axis].total += 1;
 
       savedAnswers.push({
@@ -219,15 +308,17 @@ export class ExamService {
       });
     }
 
-    const questionCount = attempt.questions.length;
-    const finalScore = questionCount > 0 ? totalScore / questionCount : 0;
-    const passed = finalScore >= PASSING_SCORE;
+    const nonOpenCount = attempt.questions.filter((q) => q.questionType !== 'open').length;
+    const finalScore = nonOpenCount > 0 ? totalScore / nonOpenCount : 0;
+    const passed = !hasOpenQuestions && finalScore >= PASSING_SCORE;
 
     // Normalize byAxis scores to percentage
     for (const ax of Object.keys(byAxis)) {
-      byAxis[ax].score = byAxis[ax].total > 0
-        ? byAxis[ax].score / byAxis[ax].total
-        : 0;
+      const axData = byAxis[ax];
+      const axNonOpen = attempt.questions.filter(
+        (q) => (q.axis ?? '__geral__') === ax && q.questionType !== 'open'
+      ).length;
+      byAxis[ax].score = axNonOpen > 0 ? axData.score / axNonOpen : 0;
     }
 
     await this.examRepository.updateAttempt(attemptId, {
@@ -236,22 +327,93 @@ export class ExamService {
       passed,
       completed: true,
       completedAt: new Date(),
+      plagiarismResults: plagiarismResults.length > 0 ? plagiarismResults : undefined,
     });
 
     return {
       attemptId,
       moduleId: attempt.moduleId,
       userId,
-      totalQuestions: questionCount,
+      totalQuestions: attempt.questions.length,
       score: finalScore,
       passed,
       byAxis,
       answers: savedAnswers,
+      hasOpenQuestions,
+      plagiarismResults,
     };
   }
 
   async getMyAttempts(userId: string, moduleId?: string): Promise<ExamAttempt[]> {
     return this.examRepository.findAttemptsByUser(userId, moduleId);
+  }
+
+  // ── Correction ── (corretor / admin only) ────────────────────────
+
+  /** Lista attempts concluídos com questões abertas aguardando correção */
+  async listPendingCorrections(): Promise<AttemptForCorrectionDTO[]> {
+    const attempts = await this.examRepository.findPendingCorrections();
+    return attempts.map(this._toAnonymousDTO);
+  }
+
+  /** Lista todos os attempts com questões abertas (corrigidos + pendentes) */
+  async listAllCorrections(): Promise<AttemptForCorrectionDTO[]> {
+    const attempts = await this.examRepository.findAllCompletedWithOpenQuestions();
+    return attempts.map(this._toAnonymousDTO);
+  }
+
+  /** Retorna o attempt para correção sem expor o userId */
+  async getAttemptForCorrection(attemptId: string): Promise<AttemptForCorrectionDTO> {
+    const attempt = await this.examRepository.findAttemptById(attemptId);
+    if (!attempt) throw new Error('Tentativa não encontrada');
+    if (!attempt.completed) throw new Error('Esta prova ainda não foi concluída');
+    return this._toAnonymousDTO(attempt);
+  }
+
+  /** Salva os feedbacks do corretor e marca a prova como corrigida */
+  async submitCorrection(
+    attemptId: string,
+    correctorId: string,
+    dto: SubmitCorrectionDTO,
+  ): Promise<AttemptForCorrectionDTO> {
+    const attempt = await this.examRepository.findAttemptById(attemptId);
+    if (!attempt) throw new Error('Tentativa não encontrada');
+    if (!attempt.completed) throw new Error('Esta prova ainda não foi concluída');
+
+    // Calculate score contribution from corrected open questions
+    const openQuestions = attempt.questions.filter((q) => q.questionType === 'open');
+    // For now score for open questions isn't automatically set — corrector provides only feedback
+    // Future: could parse rating from feedback
+
+    await this.examRepository.updateAttempt(attemptId, {
+      correctorId,
+      correctorFeedbacks: dto.feedbacks,
+      generalFeedback: dto.generalFeedback,
+      correctedAt: new Date(),
+    });
+
+    return this.getAttemptForCorrection(attemptId);
+  }
+
+  /** Converts an ExamAttempt to an anonymous DTO (no userId) */
+  private _toAnonymousDTO(attempt: ExamAttempt): AttemptForCorrectionDTO {
+    return {
+      _id: attempt._id.toHexString(),
+      moduleId: attempt.moduleId,
+      bankId: attempt.bankId,
+      questions: attempt.questions,
+      answers: attempt.answers,
+      score: attempt.score,
+      passed: attempt.passed,
+      completed: attempt.completed,
+      startedAt: attempt.startedAt,
+      completedAt: attempt.completedAt,
+      plagiarismResults: attempt.plagiarismResults,
+      correctorFeedbacks: attempt.correctorFeedbacks,
+      generalFeedback: attempt.generalFeedback,
+      correctedAt: attempt.correctedAt,
+      correctorId: attempt.correctorId,
+    };
   }
 
   // ── Private helpers ──────────────────────────────────────────────

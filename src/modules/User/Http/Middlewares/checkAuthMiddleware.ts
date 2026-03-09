@@ -123,7 +123,7 @@ export function checkPermissionMiddleware(requiredPermissions: string[]) {
 /**
  * Middleware que verifica se o usuário tem um role específico
  */
-export function checkRoleMiddleware(requiredRoles: ('user' | 'manager')[]) {
+export function checkRoleMiddleware(requiredRoles: ('user' | 'manager' | 'corretor')[]) {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     if (!request.user) {
       return reply.status(401).send({
@@ -164,7 +164,7 @@ export function requirePermissions(permissions: string[]) {
 /**
  * Middleware combinado que verifica autenticação e roles
  */
-export function requireRoles(roles: ('user' | 'manager')[]) {
+export function requireRoles(roles: ('user' | 'manager' | 'corretor')[]) {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     // Primeiro verificar autenticação
     await checkAuthMiddleware(request, reply);

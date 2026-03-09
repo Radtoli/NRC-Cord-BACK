@@ -23,6 +23,19 @@ export interface AttemptAnswer {
   scoreObtained: number;
 }
 
+export interface CorrectorFeedback {
+  questionId: string;
+  feedback: string;
+}
+
+export interface PlagiarismResult {
+  questionId: string;
+  /** true = sem plágio detectado, false = plágio potencial */
+  passed: boolean;
+  /** IDs dos attempts com respostas similares */
+  similarAttemptIds: string[];
+}
+
 /**
  * Registro de uma tentativa de prova por um aluno.
  */
@@ -68,4 +81,27 @@ export class ExamAttempt {
 
   @Column({ nullable: true })
   completedAt?: Date;
+
+  // ── Plagiarism results (populated on submit) ──────────────────
+
+  @Column('array', { nullable: true })
+  plagiarismResults?: PlagiarismResult[];
+
+  // ── Corrector fields ──────────────────────────────────────────
+
+  /** ID do corretor */
+  @Column({ nullable: true })
+  correctorId?: string;
+
+  /** Feedback por questão dissertativa */
+  @Column('array', { nullable: true })
+  correctorFeedbacks?: CorrectorFeedback[];
+
+  /** Feedback geral da prova */
+  @Column({ nullable: true })
+  generalFeedback?: string;
+
+  /** Data/hora da correção */
+  @Column({ nullable: true })
+  correctedAt?: Date;
 }

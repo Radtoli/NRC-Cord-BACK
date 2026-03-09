@@ -178,3 +178,55 @@ export async function myAttemptsHandler(
     return reply.status(500).send({ success: false, error: err.message });
   }
 }
+
+// ── Correction handlers (corretor / admin only) ───────────────────
+
+export async function listPendingCorrectionsHandler(
+  req: FastifyRequest<{ Querystring: { all?: string } }>,
+  reply: FastifyReply,
+) {
+  try {
+    const showAll = req.query.all === 'true';
+    const data = showAll
+      ? await getExamService().listAllCorrections()
+      : await getExamService().listPendingCorrections();
+    return reply.send({ success: true, data });
+  } catch (err: any) {
+    return reply.status(500).send({ success: false, error: err.message });
+  }
+}
+
+export async function getAttemptForCorrectionHandler(
+  req: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply,
+) {
+  try {
+    const data = await getExamService().getAttemptForCorrection(req.params.id);
+    return reply.send({ success: true, data });
+  } catch (err: any) {
+    const status = err.message.includes('não encontrada') ? 404 : 400;
+    return reply.status(status).send({ success: false, error: err.message });
+  }
+}
+
+export async function submitCorrectionHandler(
+  req: FastifyRequest<{
+    Params: { id: string };
+    Body: { feedbacks: Array<{ questionId: string; feedback: string }>; generalFeedback?: string };
+  }>,
+  reply: FastifyReply,
+) {
+  try {
+    const correctorId = (req as any).user?._id?.toString();
+    if (!correctorId) return reply.status(401).send({ success: false, error: 'Não autenticado' });
+
+    const data = await getExamService().submitCorrection(req.params.id, correctorId, {
+      feedbacks: req.body.feedbacks,
+      generalFeedback: req.body.generalFeedback,
+    });
+    return reply.send({ success: true, data });
+  } catch (err: any) {
+    const status = err.message.includes('não encontrada') ? 404 : 400;
+    return reply.status(status).send({ success: false, error: err.message });
+  }
+}
