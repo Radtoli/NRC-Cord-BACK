@@ -124,8 +124,8 @@ const QuestionTypeEnum = Type.Union([
 const QuizOptionSchema = Type.Object({
   text: Type.String({ minLength: 1 }),
   isCorrect: Type.Optional(Type.Boolean()),
-  /** Para weighted: 0 | 25 | 50 | 75 | 100 */
-  scoreWeight: Type.Optional(Type.Integer({ minimum: 0, maximum: 100 })),
+  /** Para weighted: float entre 0.0 e 1.0 */
+  scoreWeight: Type.Optional(Type.Number({ minimum: 0, maximum: 1 })),
   orderIndex: Type.Optional(Type.Integer({ minimum: 0 })),
 });
 
@@ -194,7 +194,7 @@ export const addExamQuestionBodySchema = Type.Object({
       Type.Object({
         text: Type.String({ minLength: 1 }),
         isCorrect: Type.Optional(Type.Boolean()),
-        scoreWeight: Type.Integer({ minimum: 0, maximum: 100 }),
+        scoreWeight: Type.Number({ minimum: 0, maximum: 1 }),
       }),
     ),
   ),
@@ -209,7 +209,7 @@ export const updateExamQuestionBodySchema = Type.Object({
       Type.Object({
         text: Type.String({ minLength: 1 }),
         isCorrect: Type.Optional(Type.Boolean()),
-        scoreWeight: Type.Integer({ minimum: 0, maximum: 100 }),
+        scoreWeight: Type.Number({ minimum: 0, maximum: 1 }),
       }),
     ),
   ),

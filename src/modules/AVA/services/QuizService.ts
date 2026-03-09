@@ -93,29 +93,25 @@ export class QuizService {
     if (questionType === 'open') {
       // No options required
     } else if (questionType === 'multiple_choice') {
-      if (!data.options || data.options.length !== 4) {
-        throw new Error('Questões de múltipla escolha precisam ter exatamente 4 alternativas');
+      if (!data.options || data.options.length < 2) {
+        throw new Error('Questões de múltipla escolha precisam ter pelo menos 2 alternativas');
       }
       const correctCount = data.options.filter((o) => o.isCorrect).length;
       if (correctCount !== 1) {
         throw new Error('Questões de múltipla escolha precisam ter exatamente 1 alternativa correta');
       }
-      data.options = data.options.map((o) => ({ ...o, scoreWeight: o.isCorrect ? 100 : 0 }));
+      data.options = data.options.map((o) => ({ ...o, scoreWeight: o.isCorrect ? 1 : 0 }));
     } else if (questionType === 'weighted') {
-      if (!data.options || data.options.length !== 5) {
-        throw new Error('Questões ponderadas precisam ter exatamente 5 alternativas');
+      if (!data.options || data.options.length < 2) {
+        throw new Error('Questões ponderadas precisam ter pelo menos 2 alternativas');
       }
-      const allowedWeights = new Set([0, 25, 50, 75, 100]);
-      const seenWeights = new Set<number>();
       for (const opt of data.options) {
         const w = opt.scoreWeight ?? 0;
-        if (!allowedWeights.has(w)) throw new Error('Pesos válidos: 0, 25, 50, 75, 100');
-        if (seenWeights.has(w)) throw new Error('Cada peso deve aparecer exatamente uma vez');
-        seenWeights.add(w);
+        if (w < 0 || w > 1) throw new Error('Peso deve ser um valor entre 0.0 e 1.0');
       }
       data.options = data.options.map((o) => ({
         ...o,
-        isCorrect: (o.scoreWeight ?? 0) === 100,
+        isCorrect: o.isCorrect ?? (o.scoreWeight ?? 0) > 0,
       }));
     }
 

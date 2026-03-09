@@ -27,7 +27,7 @@ export class QuizOption {
    * Para questões weighted: peso percentual desta alternativa (0 | 25 | 50 | 75 | 100).
    * Para multiple_choice: 100 se isCorrect, 0 caso contrário.
    */
-  @Column({ name: 'score_weight', type: 'int', default: 0 })
+  @Column({ name: 'score_weight', type: 'float', default: 0 })
   scoreWeight!: number;
 
   @Column({ name: 'order_index', type: 'int', default: 0 })
