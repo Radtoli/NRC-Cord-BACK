@@ -1,4 +1,5 @@
 import { DataSource, MongoRepository } from "typeorm";
+import { ObjectId } from "mongodb";
 import { ITrilhaRepository } from "../model/ITrilhaRepositorie";
 import { Trilha } from "../../infra/databases/Entititities";
 
@@ -32,6 +33,6 @@ export class TrilhaRepository implements ITrilhaRepository {
   }
 
   public async delete(id: string): Promise<void> {
-    await this.ormRepository.delete(id);
+    await this.ormRepository.deleteOne({ _id: new ObjectId(id) });
   }
 }

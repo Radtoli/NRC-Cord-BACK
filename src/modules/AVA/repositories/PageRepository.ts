@@ -6,7 +6,7 @@ export class PageRepository {
     return this.postgresDataSource.getRepository(Page);
   }
 
-  constructor(private postgresDataSource: DataSource) {}
+  constructor(private postgresDataSource: DataSource) { }
 
   async create(data: Partial<Page>): Promise<Page> {
     const page = this.repo.create(data);
@@ -39,8 +39,7 @@ export class PageRepository {
   }
 
   async delete(id: string): Promise<void> {
-    // Soft delete — mark isActive = false
-    await this.repo.update(id, { isActive: false });
+    await this.repo.delete(id);
   }
 
   async reorder(moduleId: string, orderedIds: string[]): Promise<void> {
