@@ -5,7 +5,7 @@ import { ExamAttempt, AttemptQuestionSnapshot, AttemptAnswer, CorrectorFeedback,
 import { AddDocumentService, SearchDocumentService } from '../../Embeding/services/EmbeddingService';
 
 const EXAM_QUESTION_COUNT = 10;
-const PASSING_SCORE = 60; // percentual mínimo para aprovação
+const PASSING_SCORE = 0.6; // proporção mínima para aprovação (0.0–1.0)
 /** Score >= threshold → potential plagiarism detected */
 const PLAGIARISM_THRESHOLD = 0.85;
 
@@ -281,7 +281,7 @@ export class ExamService {
         } else if (snap.questionType === 'multiple_choice') {
           const chosenIdx = parseInt(userAnswer.answer, 10);
           const opt = fullQ.options[chosenIdx];
-          scoreObtained = opt?.isCorrect ? 100 : 0;
+          scoreObtained = opt?.isCorrect ? 1 : 0;
         } else if (snap.questionType === 'weighted') {
           const chosenIdx = parseInt(userAnswer.answer, 10);
           const opt = fullQ.options[chosenIdx];
@@ -436,30 +436,28 @@ export class ExamService {
       }
       data.options = data.options.map((o) => ({
         ...o,
-        scoreWeight: o.isCorrect ? 100 : 0,
+        scoreWeight: o.isCorrect ? 1 : 0,
       }));
       return;
     }
 
     if (data.questionType === 'weighted') {
-      if (!data.options || data.options.length !== 5) {
-        throw new Error('Questões ponderadas precisam ter exatamente 5 alternativas');
+      if (!data.options || data.options.length < 2) {
+        throw new Error('Questões ponderadas precisam ter pelo menos 2 alternativas');
       }
-      const allowedWeights = new Set([0, 25, 50, 75, 100]);
-      const seenWeights = new Set<number>();
       for (const opt of data.options) {
-        if (!allowedWeights.has(opt.scoreWeight)) {
-          throw new Error('Pesos válidos: 0, 25, 50, 75, 100');
+        const w = opt.scoreWeight ?? 0;
+        if (w < 0 || w > 1) {
+          throw new Error(
+            'Peso deve ser um valor decimal entre 0.0 e 1.0 (ex: 0.6, 0.75)',
+          );
         }
-        if (seenWeights.has(opt.scoreWeight)) {
-          throw new Error('Cada peso (0, 25, 50, 75, 100) deve aparecer exatamente uma vez');
-        }
-        seenWeights.add(opt.scoreWeight);
       }
-      // Mark isCorrect for the 100% option
+      // Mark as correct any option whose weight is greater than 0
       data.options = data.options.map((o) => ({
         ...o,
-        isCorrect: o.scoreWeight === 100,
+        scoreWeight: o.scoreWeight ?? 0,
+        isCorrect: (o.scoreWeight ?? 0) > 0,
       }));
     }
   }

@@ -14,8 +14,8 @@ export interface ExamOptionRaw {
   /** Para multiple_choice: true se for a resposta correta */
   isCorrect: boolean;
   /**
-   * Para weighted: percentual de acerto (0 | 25 | 50 | 75 | 100).
-   * Para multiple_choice: 100 se isCorrect, 0 caso contrário.
+   * Para weighted: peso de acerto — valor decimal entre 0.0 e 1.0 (ex: 0.6, 0.75).
+   * Para multiple_choice: 1.0 se isCorrect, 0.0 caso contrário.
    * Para open: não utilizado.
    */
   scoreWeight: number;
@@ -39,8 +39,8 @@ export class ExamQuestion {
 
   /**
    * open            → resposta textual livre
-   * multiple_choice → 4 alternativas, 1 correta (scoreWeight 100/0)
-   * weighted        → 5 alternativas com pesos 100/75/50/25/0
+   * multiple_choice → mínimo 2 alternativas, 1 correta (scoreWeight 1.0/0.0)
+   * weighted        → mínimo 2 alternativas com pesos decimais livres (0.0–1.0)
    */
   @Column()
   questionType!: ExamQuestionType;
