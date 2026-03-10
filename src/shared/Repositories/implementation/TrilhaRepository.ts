@@ -10,26 +10,28 @@ export class TrilhaRepository implements ITrilhaRepository {
     this.ormRepository = this.mongoDataSource.getMongoRepository(Trilha);
   }
 
+  /** Raw MongoDB collection — bypasses TypeORM entity hydration entirely */
+  private get col() {
+    return (this.mongoDataSource.driver as any).queryRunner.getCollection('trilhas');
+  }
+
   public async findById(id: string): Promise<any | null> {
     try {
-      const trilha = await this.ormRepository.findOne({
-        where: { _id: new ObjectId(id) } as any,
-      });
-      return trilha || null;
+      return await this.col.findOne({ _id: new ObjectId(id) }) ?? null;
     } catch {
       return null;
     }
   }
 
   public async findAll(): Promise<any[]> {
-    const trilhas = await this.ormRepository.find();
-    return trilhas;
+    return await this.col.find().toArray();
   }
 
   public async create(data: Partial<Trilha>): Promise<any> {
+    // Use ORM only for creation so TypeORM generates _id and timestamps
     const trilha = this.ormRepository.create(data);
     await this.ormRepository.save(trilha);
-    return trilha;
+    return this.findById(trilha._id.toString());
   }
 
   public async update(id: string, data: Partial<Trilha>): Promise<any> {
@@ -37,11 +39,11 @@ export class TrilhaRepository implements ITrilhaRepository {
     if (data.title !== undefined) setFields['title'] = data.title;
     if (data.description !== undefined) setFields['description'] = data.description;
     if (data.videos !== undefined) setFields['videos'] = data.videos;
-    // Use 'in' so courseId: null explicitly writes null (clearing the link)
+    // 'in' check so courseId: null explicitly clears the link
     if ('courseId' in data) setFields['courseId'] = data.courseId ?? null;
     setFields['updatedAt'] = new Date();
 
-    await this.ormRepository.updateOne(
+    await this.col.updateOne(
       { _id: new ObjectId(id) },
       { $set: setFields },
     );
@@ -50,6 +52,6 @@ export class TrilhaRepository implements ITrilhaRepository {
   }
 
   public async delete(id: string): Promise<void> {
-    await this.ormRepository.deleteOne({ _id: new ObjectId(id) });
+    await this.col.deleteOne({ _id: new ObjectId(id) });
   }
 }
