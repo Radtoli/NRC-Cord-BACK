@@ -15,6 +15,7 @@ export const trilhaResponseSchema = {
             type: 'array',
             items: { type: 'string' }
           },
+          courseId: { type: 'string', nullable: true },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' }
         },
@@ -40,6 +41,7 @@ export const trilhaResponseSchema = {
             type: 'array',
             items: { type: 'string' }
           },
+          courseId: { type: 'string', nullable: true },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' }
         },
@@ -110,6 +112,7 @@ export const trilhaListResponseSchema = {
               type: 'array',
               items: { type: 'string' }
             },
+            courseId: { type: 'string', nullable: true },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' }
           },
