@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { container } from '../../../../shared/infra/containers';
 import { ExamService, CreateExamQuestionDTO } from '../../services/ExamService';
+import { ModuleService } from '../../services/ModuleService';
 
 function getExamService() {
   return container.resolve<ExamService>('avaExamService');
