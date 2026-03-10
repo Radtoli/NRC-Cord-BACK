@@ -33,19 +33,19 @@ export class TrilhaRepository implements ITrilhaRepository {
   }
 
   public async update(id: string, data: Partial<Trilha>): Promise<any> {
-    const existing = await this.ormRepository.findOne({
-      where: { _id: new ObjectId(id) } as any,
-    });
+    const setFields: Record<string, unknown> = {};
+    if (data.title !== undefined) setFields['title'] = data.title;
+    if (data.description !== undefined) setFields['description'] = data.description;
+    if (data.videos !== undefined) setFields['videos'] = data.videos;
+    // Use 'in' so courseId: null explicitly writes null (clearing the link)
+    if ('courseId' in data) setFields['courseId'] = data.courseId ?? null;
+    setFields['updatedAt'] = new Date();
 
-    if (!existing) return null;
+    await this.ormRepository.getMongoCollection().updateOne(
+      { _id: new ObjectId(id) },
+      { $set: setFields },
+    );
 
-    // Merge fields; use 'in' check so courseId: null explicitly clears the field
-    if (data.title !== undefined) existing.title = data.title;
-    if (data.description !== undefined) existing.description = data.description;
-    if (data.videos !== undefined) existing.videos = data.videos;
-    if ('courseId' in data) existing.courseId = (data.courseId as string | null | undefined) ?? undefined;
-
-    await this.ormRepository.save(existing);
     return this.findById(id);
   }
 
