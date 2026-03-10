@@ -11,8 +11,14 @@ export class TrilhaRepository implements ITrilhaRepository {
   }
 
   public async findById(id: string): Promise<any | null> {
-    const trilha = await this.ormRepository.findOne({ where: { id } });
-    return trilha || null;
+    try {
+      const trilha = await this.ormRepository.findOne({
+        where: { _id: new ObjectId(id) } as any,
+      });
+      return trilha || null;
+    } catch {
+      return null;
+    }
   }
 
   public async findAll(): Promise<any[]> {
@@ -27,9 +33,11 @@ export class TrilhaRepository implements ITrilhaRepository {
   }
 
   public async update(id: string, data: Partial<Trilha>): Promise<any> {
-    await this.ormRepository.update(id, data);
-    const updatedTrilha = await this.findById(id);
-    return updatedTrilha;
+    await this.ormRepository.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: data },
+    );
+    return this.findById(id);
   }
 
   public async delete(id: string): Promise<void> {
