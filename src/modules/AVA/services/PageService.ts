@@ -4,6 +4,7 @@ import { Page } from '../entities/Page';
 
 export interface FullPageDTO {
   id: string;
+  moduleId: string;
   title: string;
   slug?: string;
   orderIndex: number;
@@ -74,6 +75,7 @@ export class PageService {
 
     return {
       id: page.id,
+      moduleId: page.moduleId,
       title: page.title,
       slug: page.slug,
       orderIndex: page.orderIndex,

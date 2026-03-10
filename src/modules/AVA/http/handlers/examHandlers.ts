@@ -2,6 +2,8 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { container } from '../../../../shared/infra/containers';
 import { ExamService, CreateExamQuestionDTO } from '../../services/ExamService';
 import { ModuleService } from '../../services/ModuleService';
+import { PageService } from '../../services/PageService';
+import { SectionService } from '../../services/SectionService';
 
 function getExamService() {
   return container.resolve<ExamService>('avaExamService');
@@ -136,14 +138,37 @@ export async function startExamHandler(
     // Resolve bankId from the module itself — avoids requiring the frontend to know it
     const moduleService = container.resolve<ModuleService>('avaModuleService');
     const module = await moduleService.findById(req.params.moduleId);
-    if (!module.examBankId) {
+
+    let bankId = module.examBankId;
+
+    // Fallback: if the module has no examBankId set directly, look through its pages'
+    // sections for an EXAM_BANK section with exam_bank_id in config.
+    if (!bankId) {
+      const pageService = container.resolve<PageService>('avaPageService');
+      const sectionService = container.resolve<SectionService>('avaSectionService');
+      const pages = await pageService.findByModuleId(req.params.moduleId);
+      for (const page of pages) {
+        const sections = await sectionService.findByPageId(page.id);
+        const examSection = sections.find(
+          (s) => s.type === 'EXAM_BANK' && s.config?.exam_bank_id,
+        );
+        if (examSection) {
+          bankId = examSection.config.exam_bank_id as string;
+          // Persist so future calls skip the lookup
+          await moduleService.update(req.params.moduleId, { examBankId: bankId });
+          break;
+        }
+      }
+    }
+
+    if (!bankId) {
       return reply.status(400).send({ success: false, error: 'Este módulo não tem banco de questões configurado' });
     }
 
     const attempt = await getExamService().startExam(
       userId,
       req.params.moduleId,
-      module.examBankId,
+      bankId,
     );
     return reply.status(201).send({ success: true, data: attempt });
   } catch (err: any) {
