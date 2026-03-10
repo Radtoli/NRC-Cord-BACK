@@ -5,14 +5,20 @@ import {
   ObjectIdColumn,
 } from 'typeorm';
 import { ObjectId } from 'mongodb';
-import { ExamOptionRaw, ExamQuestionType } from './ExamQuestion';
+import { ExamQuestionType } from './ExamQuestion';
+
+/** Opção de questão enviada ao aluno (sem gabarito, com índice de referência) */
+export interface SnapshotOption {
+  text: string;
+  index: number;
+}
 
 export interface AttemptQuestionSnapshot {
   questionId: string;
   statement: string;
   questionType: ExamQuestionType;
   axis?: string;
-  options: Omit<ExamOptionRaw, 'isCorrect' | 'scoreWeight'>[];
+  options: SnapshotOption[];
 }
 
 export interface AttemptAnswer {

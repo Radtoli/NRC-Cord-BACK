@@ -78,7 +78,9 @@ export class ExamRepository {
   }
 
   async countQuestions(bankId: string): Promise<number> {
-    return this.questionRepo.count({ where: { bankId } as any });
+    // Use countDocuments (raw MongoDB filter) instead of count({ where }) to avoid
+    // TypeORM MongoRepository translation inconsistencies that can return 0 incorrectly.
+    return this.questionRepo.countDocuments({ bankId });
   }
 
   /** Retorna `count` questões aleatórias do banco */

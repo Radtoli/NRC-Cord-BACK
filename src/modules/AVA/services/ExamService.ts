@@ -1,8 +1,21 @@
 import { ExamRepository } from '../repositories/ExamRepository';
 import { ExamBank } from '../../../shared/infra/databases/Entititities/ExamBank';
-import { ExamQuestion, ExamOptionRaw, ExamQuestionType } from '../../../shared/infra/databases/Entititities/ExamQuestion';
-import { ExamAttempt, AttemptQuestionSnapshot, AttemptAnswer, CorrectorFeedback, PlagiarismResult } from '../../../shared/infra/databases/Entititities/ExamAttempt';
-import { AddDocumentService, SearchDocumentService } from '../../Embeding/services/EmbeddingService';
+import {
+  ExamQuestion,
+  ExamOptionRaw,
+  ExamQuestionType,
+} from '../../../shared/infra/databases/Entititities/ExamQuestion';
+import {
+  ExamAttempt,
+  AttemptQuestionSnapshot,
+  AttemptAnswer,
+  CorrectorFeedback,
+  PlagiarismResult,
+} from '../../../shared/infra/databases/Entititities/ExamAttempt';
+import {
+  AddDocumentService,
+  SearchDocumentService,
+} from '../../Embeding/services/EmbeddingService';
 
 const EXAM_QUESTION_COUNT = 10;
 const PASSING_SCORE = 0.6; // proporção mínima para aprovação (0.0–1.0)
@@ -91,10 +104,16 @@ export class ExamService {
     return bank;
   }
 
-  async updateBank(id: string, data: Partial<CreateBankDTO>): Promise<ExamBank> {
+  async updateBank(
+    id: string,
+    data: Partial<CreateBankDTO>,
+  ): Promise<ExamBank> {
     const existing = await this.examRepository.findBankById(id);
     if (!existing) throw new Error('Banco de questões não encontrado');
-    const updated = await this.examRepository.updateBank(id, data as Partial<ExamBank>);
+    const updated = await this.examRepository.updateBank(
+      id,
+      data as Partial<ExamBank>,
+    );
     return updated!;
   }
 
@@ -126,7 +145,10 @@ export class ExamService {
     return this.examRepository.findQuestionsByBankId(bankId);
   }
 
-  async updateQuestion(id: string, data: Partial<CreateExamQuestionDTO>): Promise<ExamQuestion> {
+  async updateQuestion(
+    id: string,
+    data: Partial<CreateExamQuestionDTO>,
+  ): Promise<ExamQuestion> {
     const existing = await this.examRepository.findQuestionById(id);
     if (!existing) throw new Error('Questão não encontrada');
 
@@ -160,25 +182,30 @@ export class ExamService {
    * Inicia uma prova: sorteia 10 questões aleatórias do banco, cria um ExamAttempt
    * e retorna o snapshot (sem gabaritos) para o aluno.
    */
-  async startExam(userId: string, moduleId: string, bankId: string): Promise<ExamAttempt> {
+  async startExam(
+    userId: string,
+    moduleId: string,
+    bankId: string,
+  ): Promise<ExamAttempt> {
     const bank = await this.examRepository.findBankById(bankId);
     if (!bank) throw new Error('Banco de questões não encontrado');
 
     const total = await this.examRepository.countQuestions(bankId);
-    if (total === 0) throw new Error('O banco de questões não possui questões cadastradas');
+    if (total === 0)
+      throw new Error('O banco de questões não possui questões cadastradas');
 
     const randomQuestions = await this.examRepository.getRandomQuestions(
       bankId,
       Math.min(EXAM_QUESTION_COUNT, total),
     );
 
-    const snapshots: AttemptQuestionSnapshot[] = randomQuestions.map((q) => ({
+    const snapshots: AttemptQuestionSnapshot[] = randomQuestions.map(q => ({
       questionId: q._id.toHexString(),
       statement: q.statement,
       questionType: q.questionType,
       axis: q.axis,
       // Strip isCorrect/scoreWeight from options sent to the student
-      options: q.options.map(({ text }, idx) => ({ text, index: idx })) as any,
+      options: q.options.map(({ text }, idx) => ({ text, index: idx })),
     }));
 
     return this.examRepository.createAttempt({
@@ -210,7 +237,9 @@ export class ExamService {
 
     // Load full questions (with answers) from DB
     const fullQuestions = await Promise.all(
-      attempt.questions.map((q) => this.examRepository.findQuestionById(q.questionId)),
+      attempt.questions.map(q =>
+        this.examRepository.findQuestionById(q.questionId),
+      ),
     );
 
     let totalScore = 0;
@@ -220,8 +249,10 @@ export class ExamService {
     let hasOpenQuestions = false;
 
     for (const snap of attempt.questions) {
-      const fullQ = fullQuestions.find((fq) => fq?._id.toHexString() === snap.questionId);
-      const userAnswer = answers.find((a) => a.questionId === snap.questionId);
+      const fullQ = fullQuestions.find(
+        fq => fq?._id.toHexString() === snap.questionId,
+      );
+      const userAnswer = answers.find(a => a.questionId === snap.questionId);
 
       let scoreObtained = 0;
 
@@ -242,14 +273,14 @@ export class ExamService {
                 query: answerText,
                 provaId: attemptId,
                 tipoProva: 'exam',
-                numeroQuestao: snap.questionId as any,
+                numeroQuestao: attempt.questions.indexOf(snap),
                 limit: 5,
               });
 
               for (const r of searchResults) {
                 if (r.score >= PLAGIARISM_THRESHOLD) {
                   plagiarismPassed = false;
-                  const similarId = (r as any).payload?.provaId;
+                  const similarId = r.payload?.provaId;
                   if (similarId && !similarAttemptIds.includes(similarId)) {
                     similarAttemptIds.push(similarId);
                   }
@@ -257,7 +288,10 @@ export class ExamService {
               }
             } catch (err) {
               // Embedding service unavailable — skip plagiarism check silently
-              console.warn('[Plagiarism] Search failed:', (err as Error).message);
+              console.warn(
+                '[Plagiarism] Search failed:',
+                (err as Error).message,
+              );
             }
 
             plagiarismResults.push({
@@ -272,10 +306,13 @@ export class ExamService {
                 text: answerText,
                 provaId: attemptId,
                 tipoProva: 'exam',
-                numeroQuestao: snap.questionId as any,
+                numeroQuestao: attempt.questions.indexOf(snap),
               });
             } catch (err) {
-              console.warn('[Plagiarism] Add document failed:', (err as Error).message);
+              console.warn(
+                '[Plagiarism] Add document failed:',
+                (err as Error).message,
+              );
             }
           }
         } else if (snap.questionType === 'multiple_choice') {
@@ -308,7 +345,9 @@ export class ExamService {
       });
     }
 
-    const nonOpenCount = attempt.questions.filter((q) => q.questionType !== 'open').length;
+    const nonOpenCount = attempt.questions.filter(
+      q => q.questionType !== 'open',
+    ).length;
     const finalScore = nonOpenCount > 0 ? totalScore / nonOpenCount : 0;
     const passed = !hasOpenQuestions && finalScore >= PASSING_SCORE;
 
@@ -316,7 +355,7 @@ export class ExamService {
     for (const ax of Object.keys(byAxis)) {
       const axData = byAxis[ax];
       const axNonOpen = attempt.questions.filter(
-        (q) => (q.axis ?? '__geral__') === ax && q.questionType !== 'open'
+        q => (q.axis ?? '__geral__') === ax && q.questionType !== 'open',
       ).length;
       byAxis[ax].score = axNonOpen > 0 ? axData.score / axNonOpen : 0;
     }
@@ -327,7 +366,8 @@ export class ExamService {
       passed,
       completed: true,
       completedAt: new Date(),
-      plagiarismResults: plagiarismResults.length > 0 ? plagiarismResults : undefined,
+      plagiarismResults:
+        plagiarismResults.length > 0 ? plagiarismResults : undefined,
     });
 
     return {
@@ -344,7 +384,10 @@ export class ExamService {
     };
   }
 
-  async getMyAttempts(userId: string, moduleId?: string): Promise<ExamAttempt[]> {
+  async getMyAttempts(
+    userId: string,
+    moduleId?: string,
+  ): Promise<ExamAttempt[]> {
     return this.examRepository.findAttemptsByUser(userId, moduleId);
   }
 
@@ -358,15 +401,19 @@ export class ExamService {
 
   /** Lista todos os attempts com questões abertas (corrigidos + pendentes) */
   async listAllCorrections(): Promise<AttemptForCorrectionDTO[]> {
-    const attempts = await this.examRepository.findAllCompletedWithOpenQuestions();
+    const attempts =
+      await this.examRepository.findAllCompletedWithOpenQuestions();
     return attempts.map(this._toAnonymousDTO);
   }
 
   /** Retorna o attempt para correção sem expor o userId */
-  async getAttemptForCorrection(attemptId: string): Promise<AttemptForCorrectionDTO> {
+  async getAttemptForCorrection(
+    attemptId: string,
+  ): Promise<AttemptForCorrectionDTO> {
     const attempt = await this.examRepository.findAttemptById(attemptId);
     if (!attempt) throw new Error('Tentativa não encontrada');
-    if (!attempt.completed) throw new Error('Esta prova ainda não foi concluída');
+    if (!attempt.completed)
+      throw new Error('Esta prova ainda não foi concluída');
     return this._toAnonymousDTO(attempt);
   }
 
@@ -378,10 +425,10 @@ export class ExamService {
   ): Promise<AttemptForCorrectionDTO> {
     const attempt = await this.examRepository.findAttemptById(attemptId);
     if (!attempt) throw new Error('Tentativa não encontrada');
-    if (!attempt.completed) throw new Error('Esta prova ainda não foi concluída');
+    if (!attempt.completed)
+      throw new Error('Esta prova ainda não foi concluída');
 
     // Calculate score contribution from corrected open questions
-    const openQuestions = attempt.questions.filter((q) => q.questionType === 'open');
     // For now score for open questions isn't automatically set — corrector provides only feedback
     // Future: could parse rating from feedback
 
@@ -419,7 +466,8 @@ export class ExamService {
   // ── Private helpers ──────────────────────────────────────────────
 
   private _validateQuestion(data: CreateExamQuestionDTO): void {
-    if (!data.statement?.trim()) throw new Error('Enunciado da questão é obrigatório');
+    if (!data.statement?.trim())
+      throw new Error('Enunciado da questão é obrigatório');
 
     if (data.questionType === 'open') {
       // No options required
@@ -428,13 +476,17 @@ export class ExamService {
 
     if (data.questionType === 'multiple_choice') {
       if (!data.options || data.options.length !== 4) {
-        throw new Error('Questões de múltipla escolha precisam ter exatamente 4 alternativas');
+        throw new Error(
+          'Questões de múltipla escolha precisam ter exatamente 4 alternativas',
+        );
       }
-      const correctCount = data.options.filter((o) => o.isCorrect).length;
+      const correctCount = data.options.filter(o => o.isCorrect).length;
       if (correctCount !== 1) {
-        throw new Error('Questões de múltipla escolha precisam ter exatamente 1 alternativa correta');
+        throw new Error(
+          'Questões de múltipla escolha precisam ter exatamente 1 alternativa correta',
+        );
       }
-      data.options = data.options.map((o) => ({
+      data.options = data.options.map(o => ({
         ...o,
         scoreWeight: o.isCorrect ? 1 : 0,
       }));
@@ -443,7 +495,9 @@ export class ExamService {
 
     if (data.questionType === 'weighted') {
       if (!data.options || data.options.length < 2) {
-        throw new Error('Questões ponderadas precisam ter pelo menos 2 alternativas');
+        throw new Error(
+          'Questões ponderadas precisam ter pelo menos 2 alternativas',
+        );
       }
       for (const opt of data.options) {
         const w = opt.scoreWeight ?? 0;
@@ -454,7 +508,7 @@ export class ExamService {
         }
       }
       // Mark as correct any option whose weight is greater than 0
-      data.options = data.options.map((o) => ({
+      data.options = data.options.map(o => ({
         ...o,
         scoreWeight: o.scoreWeight ?? 0,
         isCorrect: (o.scoreWeight ?? 0) > 0,
