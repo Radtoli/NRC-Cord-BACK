@@ -125,21 +125,28 @@ export async function deleteExamQuestionHandler(
 // ── Exam execution ────────────────────────────────────────────────
 
 export async function startExamHandler(
-  req: FastifyRequest<{ Params: { moduleId: string }; Body: { bankId: string } }>,
+  req: FastifyRequest<{ Params: { moduleId: string } }>,
   reply: FastifyReply,
 ) {
   try {
     const userId = (req as any).user?._id?.toString();
     if (!userId) return reply.status(401).send({ success: false, error: 'Não autenticado' });
 
+    // Resolve bankId from the module itself — avoids requiring the frontend to know it
+    const moduleService = container.resolve<ModuleService>('avaModuleService');
+    const module = await moduleService.findById(req.params.moduleId);
+    if (!module.examBankId) {
+      return reply.status(400).send({ success: false, error: 'Este módulo não tem banco de questões configurado' });
+    }
+
     const attempt = await getExamService().startExam(
       userId,
       req.params.moduleId,
-      req.body.bankId,
+      module.examBankId,
     );
     return reply.status(201).send({ success: true, data: attempt });
   } catch (err: any) {
-    const status = err.message.includes('não encontrado') ? 404 : 400;
+    const status = err.message.includes('não encontrado') || err.message.includes('not found') ? 404 : 400;
     return reply.status(status).send({ success: false, error: err.message });
   }
 }

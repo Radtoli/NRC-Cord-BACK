@@ -215,9 +215,7 @@ export const updateExamQuestionBodySchema = Type.Object({
   ),
 });
 
-export const startExamBodySchema = Type.Object({
-  bankId: Type.String(),
-});
+export const startExamBodySchema = Type.Object({});
 
 export const submitExamBodySchema = Type.Object({
   attemptId: Type.String(),

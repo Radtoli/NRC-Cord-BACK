@@ -425,7 +425,6 @@ export async function avaRoutes(fastify: FastifyInstance) {
   fastify.post('/modules/:moduleId/exam/start', {
     schema: {
       params: { type: 'object', properties: { moduleId: { type: 'string' } } },
-      body: startExamBodySchema,
       headers: authorizationHeadersSchema,
     },
     preHandler: authenticated,
