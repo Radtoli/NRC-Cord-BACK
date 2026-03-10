@@ -4,12 +4,14 @@ export interface CreateTrilhaDTO {
   title: string;
   description?: string;
   videos?: ObjectId[];
+  courseId?: string;
 }
 
 export interface UpdateTrilhaDTO {
   title?: string;
   description?: string;
   videos?: ObjectId[];
+  courseId?: string;
 }
 
 export interface TrilhaResponseDTO {
@@ -17,6 +19,7 @@ export interface TrilhaResponseDTO {
   title: string;
   description?: string;
   videos: ObjectId[];
+  courseId?: string;
   createdAt: Date;
   updatedAt: Date;
 }

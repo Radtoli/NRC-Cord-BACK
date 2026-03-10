@@ -21,6 +21,9 @@ export class Trilha {
   @Column("array")
   videos!: ObjectId[];
 
+  @Column({ nullable: true })
+  courseId?: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 

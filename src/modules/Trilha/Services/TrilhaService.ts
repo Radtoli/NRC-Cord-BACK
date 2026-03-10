@@ -13,7 +13,8 @@ export class TrilhaService {
     const trilhaData = {
       title: data.title,
       description: data.description,
-      videos: data.videos || []
+      videos: data.videos || [],
+      courseId: data.courseId
     };
 
     const trilha = await this.trilhaRepository.create(trilhaData);
@@ -47,6 +48,7 @@ export class TrilhaService {
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.videos !== undefined) updateData.videos = data.videos;
+    if (data.courseId !== undefined) updateData.courseId = data.courseId;
 
     const updatedTrilha = await this.trilhaRepository.update(id.toString(), updateData);
     return this.mapToResponseDTO(updatedTrilha);
@@ -67,6 +69,7 @@ export class TrilhaService {
       title: trilha.title,
       description: trilha.description,
       videos: trilha.videos,
+      courseId: trilha.courseId,
       createdAt: trilha.createdAt,
       updatedAt: trilha.updatedAt
     };

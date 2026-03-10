@@ -18,7 +18,8 @@ export async function createTrilhaHandler(
     const createData = {
       title: request.body.title,
       description: request.body.description,
-      videos: request.body.videos?.map((id: string) => new ObjectId(id))
+      videos: request.body.videos?.map((id: string) => new ObjectId(id)),
+      courseId: request.body.courseId
     };
 
     const trilha = await trilhaService.create(createData);
@@ -106,7 +107,8 @@ export async function updateTrilhaHandler(
     const updateData = {
       title: request.body.title,
       description: request.body.description,
-      videos: request.body.videos?.map((id: string) => new ObjectId(id))
+      videos: request.body.videos?.map((id: string) => new ObjectId(id)),
+      courseId: request.body.courseId
     };
 
     const trilha = await trilhaService.update(trilhaId, updateData);
