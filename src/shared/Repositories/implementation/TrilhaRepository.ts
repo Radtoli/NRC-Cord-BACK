@@ -41,7 +41,7 @@ export class TrilhaRepository implements ITrilhaRepository {
     if ('courseId' in data) setFields['courseId'] = data.courseId ?? null;
     setFields['updatedAt'] = new Date();
 
-    await this.ormRepository.getMongoCollection().updateOne(
+    await this.ormRepository.updateOne(
       { _id: new ObjectId(id) },
       { $set: setFields },
     );
