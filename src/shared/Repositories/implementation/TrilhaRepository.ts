@@ -33,10 +33,19 @@ export class TrilhaRepository implements ITrilhaRepository {
   }
 
   public async update(id: string, data: Partial<Trilha>): Promise<any> {
-    await this.ormRepository.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: data },
-    );
+    const existing = await this.ormRepository.findOne({
+      where: { _id: new ObjectId(id) } as any,
+    });
+
+    if (!existing) return null;
+
+    // Merge fields; use 'in' check so courseId: null explicitly clears the field
+    if (data.title !== undefined) existing.title = data.title;
+    if (data.description !== undefined) existing.description = data.description;
+    if (data.videos !== undefined) existing.videos = data.videos;
+    if ('courseId' in data) existing.courseId = (data.courseId as string | null | undefined) ?? undefined;
+
+    await this.ormRepository.save(existing);
     return this.findById(id);
   }
 

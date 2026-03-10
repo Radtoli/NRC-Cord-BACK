@@ -48,7 +48,7 @@ export class TrilhaService {
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.videos !== undefined) updateData.videos = data.videos;
-    if (data.courseId !== undefined) updateData.courseId = data.courseId;
+    if ('courseId' in data) updateData.courseId = data.courseId ?? null;
 
     const updatedTrilha = await this.trilhaRepository.update(id.toString(), updateData);
     return this.mapToResponseDTO(updatedTrilha);

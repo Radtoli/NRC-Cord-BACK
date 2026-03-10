@@ -11,7 +11,7 @@ export interface UpdateTrilhaDTO {
   title?: string;
   description?: string;
   videos?: ObjectId[];
-  courseId?: string;
+  courseId?: string | null;
 }
 
 export interface TrilhaResponseDTO {
